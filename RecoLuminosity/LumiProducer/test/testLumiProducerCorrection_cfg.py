@@ -44,6 +44,11 @@ if (options.lastRun == -1) :
 process = cms.Process("testLumiProducerCorrection")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load("RecoLuminosity.LumiProducer.lumiProducer_cff")
+process.lumiProducer.produceLumiSummaryRunHeader = cms.bool(False)
+process.lumiProducer.produceL1TLumiData = cms.bool(False)
+process.lumiProducer.produceHLTLumiData = cms.bool(False)
+process.lumiProducer.produceLumiDetails = cms.bool(False)
+process.lumiProducer.ncacheEntries = cms.untracked.uint32(10)
 process.LumiCorrectionSource = cms.ESSource("LumiCorrectionSource"
                                             , connect=cms.string("frontier://LumiCalc/CMS_LUMI_PROD")
 )
