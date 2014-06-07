@@ -83,3 +83,12 @@
   <flags EDM_PLUGIN="1"/>
 </library>
 
+<library file="TestLumiProducerCorrection.cc" name="TestLumiProducerCorrection">
+  <use name="FWCore/Utilities" />
+  <use name="FWCore/ParameterSet" />
+  <use name="DataFormats/Common" />
+  <use name="DataFormats/Provenance" />
+  <use name="RecoLuminosity/LumiProducer" />
+  <flags EDM_PLUGIN="1"/>
+</library>
+
