@@ -5,6 +5,8 @@
 <use name="RelationalAccess"/>
 <use name="FWCore/ServiceRegistry"/>
 <use name="FWCore/Utilities"/>
+<use name="DataFormats/Luminosity"/>
+<use name="CondCore/DBCommon"/>
 <export>
    <lib name="1"/>
 </export>

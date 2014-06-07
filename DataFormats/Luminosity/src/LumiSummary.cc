@@ -41,12 +41,10 @@ LumiSummary::bitzerocount() const{
 float 
 LumiSummary::deadFrac() const {
   //definition: deadcount/bitzerocount
-  //if no trigger data, return deadfraction 1.0,mask out this LS
   //if bitzerocount=0, return -1.0 meaning no beam
   if(lumiversion_=="DIP"){
     return float(deadcount_)/float(bitzerocount_);
   }
-  if (l1data_.size()==0) return 1.0;
   if (bitzerocount_==0) return -1.0;
   return float(deadcount_)/float(bitzerocount_);
 }
