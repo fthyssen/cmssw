@@ -28,7 +28,7 @@ class LumiDetails;
 
 class LumiProducer : public edm::one::EDProducer<edm::one::WatchRuns
                                                  , edm::BeginLuminosityBlockProducer
-                                                 , edm::EndRunProducer>
+                                                 , edm::BeginRunProducer>
 {
 protected:
     static unsigned int const nbunches_ = 3564;
@@ -62,6 +62,7 @@ private:
     void clearLumiCache();
 
     virtual void beginRun(edm::Run const & _run, edm::EventSetup const &) override final;
+    virtual void beginRunProduce(edm::Run & _run, edm::EventSetup const &) override final;
 
     virtual void beginLuminosityBlockProduce(edm::LuminosityBlock & _lumi
                                              , edm::EventSetup const & _setup) override final;
@@ -69,7 +70,6 @@ private:
     virtual void produce(edm::Event &, edm::EventSetup const &) override final;
 
     virtual void endRun(edm::Run const &, edm::EventSetup const &) override final;
-    virtual void endRunProduce(edm::Run & _run, edm::EventSetup const &) override final;
 
 protected:
     cond::DbConnection input_database_;

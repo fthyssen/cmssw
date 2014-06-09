@@ -2,7 +2,7 @@
 
 #include <sstream>
 #include <algorithm>
-#include <iostream>
+#include <memory>
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -572,6 +572,16 @@ void LumiProducer::beginRun(edm::Run const & _run, edm::EventSetup const &)
     fillRunCache(_run.run());
 }
 
+void LumiProducer::beginRunProduce(edm::Run & _run, edm::EventSetup const &)
+{
+    if (produce_lumi_summary_run_header_) {
+        std::auto_ptr<LumiSummaryRunHeader> _lumi_summary_run_header(new LumiSummaryRunHeader());
+        _lumi_summary_run_header->swapL1Names(l1t_names_);
+        _lumi_summary_run_header->swapHLTNames(hlt_names_);
+        _run.put(_lumi_summary_run_header);
+    }
+}
+
 void LumiProducer::beginLuminosityBlockProduce(edm::LuminosityBlock & _lumi
                                                , edm::EventSetup const & _setup)
 {
@@ -610,15 +620,6 @@ void LumiProducer::endRun(edm::Run const &, edm::EventSetup const &)
 {
     clearLumiCache();
     clearRunCache();
-}
-
-void LumiProducer::endRunProduce(edm::Run & _run, edm::EventSetup const &)
-{
-    if (produce_lumi_summary_run_header_) {
-        std::auto_ptr<LumiSummaryRunHeader> _lumi_summary_run_header(new LumiSummaryRunHeader());
-        _lumi_summary_run_header->swapL1Names(l1t_names_);
-        _lumi_summary_run_header->swapHLTNames(hlt_names_);
-    }
 }
 
 //define this as a plug-in
