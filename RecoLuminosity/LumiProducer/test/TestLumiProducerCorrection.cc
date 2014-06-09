@@ -43,6 +43,8 @@ TestLumiProducerCorrection::TestLumiProducerCorrection(edm::ParameterSet const &
               << "," << std::setw(8) << "LS"
               << "," << std::setw(8) << "Dur"
               << "," << std::setw(8) << "NColBun"
+              << "," << std::setw(12) << "L1T0Cnt"
+              << "," << std::setw(12) << "L1T0Dead"
               << "," << std::setw(12) << "InstLumi"
               << "," << std::setw(12) << "IntgLumi/evt"
               << "," << std::setw(12) << "Del"
@@ -78,28 +80,30 @@ void TestLumiProducerCorrection::beginLuminosityBlock(edm::LuminosityBlock const
     if ((--_lumis_it)->second < _lumi.luminosityBlock())
         return;
 
-    edm::Handle<LumiSummary> _lumisummary;
-    _lumi.getByLabel(edm::InputTag("lumiProducer", ""), _lumisummary);
-    if (! _lumisummary.isValid()) {
+    edm::Handle<LumiSummary> _lumi_summary;
+    _lumi.getByLabel(edm::InputTag("lumiProducer", ""), _lumi_summary);
+    if (! _lumi_summary.isValid()) {
         std::cerr<< "Could not get valid LumiSummary for LuminosityBlock " << _lumi.luminosityBlock()
                  << "; skipping this LuminosityBlock.";
         return;
     }
-    double _instlumi = _lumisummary->avgInsDelLumi();
+    double _instlumi = _lumi_summary->avgInsDelLumi();
     _instlumi *= lumi_correction_->getCorrection(_instlumi);
-    double _duration = _lumisummary->lumiSectionLength();
-    double _avgpu = minbias_xsec_ * _instlumi * _duration / (double)(_lumisummary->numOrbit() * lumi_correction_->ncollidingbunches());
+    double _duration = _lumi_summary->lumiSectionLength();
+    double _avgpu = minbias_xsec_ * _instlumi * _duration / (double)(_lumi_summary->numOrbit() * lumi_correction_->ncollidingbunches());
     std::cout << std::setw(8) << _lumi.run()
               << "," << std::setw(8) << _lumi.luminosityBlock()
               << std::fixed << std::setprecision(2)
-              << "," << std::setw(8) << _duration * _lumisummary->liveFrac()
+              << "," << std::setw(8) << _duration * _lumi_summary->liveFrac()
               << "," << std::setw(8) << lumi_correction_->ncollidingbunches()
+              << "," << std::setw(12) << _lumi_summary->bitzerocount()
+              << "," << std::setw(12) << _lumi_summary->deadcount()
               << "," << std::setw(12) << _instlumi
               << std::scientific
-              << "," << std::setw(12) << _instlumi * _duration / (double)(_lumisummary->numOrbit() * lumi_correction_->ncollidingbunches())
+              << "," << std::setw(12) << _instlumi * _duration / (double)(_lumi_summary->numOrbit() * lumi_correction_->ncollidingbunches())
               << std::fixed << std::setprecision(2)
               << "," << std::setw(12) << _instlumi * _duration
-              << "," << std::setw(12) << _instlumi * _duration * _lumisummary->liveFrac()
+              << "," << std::setw(12) << _instlumi * _duration * _lumi_summary->liveFrac()
               << "," << std::setw(8) << _avgpu
               << std::endl;
     std::cout.unsetf(std::ios_base::floatfield);

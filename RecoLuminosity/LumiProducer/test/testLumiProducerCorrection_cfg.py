@@ -62,7 +62,7 @@ process.source = cms.Source("EmptySource"
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32((options.lastRun - options.firstRun + 1) * (options.lastLumi - options.firstLumi + 1)) )
 
 process.MessageLogger.cerr.FwkReport.limit = cms.untracked.int32(0)
-process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+# process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.testLumiProducerCorrection = cms.EDAnalyzer("TestLumiProducerCorrection"
                                                     , minBiasXsec = cms.untracked.double(options.minBiasXsec)
