@@ -32,7 +32,8 @@ class RPCDetId :public DetId {
 	   int sector,
 	   int layer,
 	   int subsector,
-	   int roll);
+	   int roll,
+	   int gap = 0);
 	   
 
   /// Sort Operator based on the raw detector id
@@ -121,6 +122,11 @@ class RPCDetId :public DetId {
     return int((id_>>RollStartBit_) & RollMask_); // value 0 is used as wild card
   }
 
+    /// Gap id: 1 (down/bottom), 2 (up/top), 0 (wildcard)
+  int gap() const{
+    return int((id_>>GapStartBit_) & GapMask_); // value 0 is used as wild card
+  }
+
 
   int trIndex() const{
     return trind;
@@ -129,6 +135,11 @@ class RPCDetId :public DetId {
   /// Return the corresponding ChamberId
   RPCDetId chamberId() const {
     return RPCDetId(id_ & chamberIdMask_);
+  }
+
+  /// Return the corresponding RollId
+  RPCDetId rollId() const {
+    return RPCDetId(id_ & rollIdMask_);
   }
 
 
@@ -164,6 +175,9 @@ class RPCDetId :public DetId {
   static const int minRollId=	  0;
   static const int maxRollId=	  4;
 
+  static const int minGapId = 0;
+  static const int maxGapId = 2;
+
 
  private:
   static const int RegionNumBits_  =  2;
@@ -195,7 +209,12 @@ class RPCDetId :public DetId {
   static const int RollStartBit_ =  SubSectorStartBit_+SubSectorNumBits_;  
   static const unsigned int RollMask_     =  0X7;
  
-  static const uint32_t chamberIdMask_ = ~(RollMask_<<RollStartBit_);
+  static const int GapNumBits_ = 2;
+  static const int GapStartBit_ = RollStartBit_ + RollNumBits_;
+  static const unsigned int GapMask_ =  0X3;
+
+  static const uint32_t chamberIdMask_ = ~((RollMask_ << RollStartBit_) | (GapMask_ << GapStartBit_));
+  static const uint32_t rollIdMask_ = ~(GapMask_ << GapStartBit_);
 
  private:
   void init(int region, 
@@ -204,7 +223,8 @@ class RPCDetId :public DetId {
 	    int sector,
 	    int layer,
 	    int subsector,
-	    int roll);
+	    int roll,
+	    int gap = 0);
   
   int trind;
 }; // RPCDetId

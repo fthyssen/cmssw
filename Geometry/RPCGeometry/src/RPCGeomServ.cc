@@ -1,7 +1,105 @@
 #include "Geometry/RPCGeometry/interface/RPCGeomServ.h"
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
+#include <ostream>
 #include <sstream>
 #include <iomanip>
+
+void RPCGeomServ::streamChamberName(std::ostream & _os) const
+{
+    int station = _id->station();
+    int region = _id->region();
+    int ring = _id->ring();
+    int layer = _id->layer();
+    int sector = _id->sector();
+    int subsector = _id->subsector();
+
+    if( region == 0 )
+    {
+      _os << "W";
+      _os << std::setw(2) << std::setfill('+') << ring
+          << std::setfill(' ');
+      _os << "_RB" << station;
+      if (station <= 2)
+        (layer == 1) ? _os << "in" : _os << "out";
+      else
+      {
+        if(sector == 4 && station == 4)
+          switch (subsector)
+          {
+            case 1: _os << "--"; break;
+            case 2: _os << "-"; break;
+            case 3: _os << "+"; break;
+            case 4: _os << "++"; break;
+          }
+        if (station == 3
+            || (sector != 9
+                && sector != 11
+                && sector != 4 )
+            )
+          (subsector == 1) ? _os << "-" : _os << "+";
+      }
+      _os << "_S" << std::setw(2) << std::setfill('0')
+          << sector << std::setfill(' ');
+    }
+    else
+    {
+      _os << "RE";
+      _os << std::setw(2) << std::setfill('+') << station * region
+          << std::setfill(' ');
+      _os << "_R" << ring;
+      _os << "_CH" << std::setw(2) << std::setfill('0') << segment();
+    }
+}
+
+void RPCGeomServ::streamRollName(std::ostream & _os) const
+{
+  int region = _id->region();
+  int roll = _id->roll();
+  streamChamberName(_os);
+  if (region == 0)
+  {
+    switch (roll)
+    {
+    case 1: _os << "_Backward"; break;
+    case 3: _os << "_Forward"; break;
+    case 2: _os << "_Middle"; break;
+    }
+  }
+  else
+  {
+    switch (roll)
+    {
+    case 1: _os << "_A"; break;
+    case 2: _os << "_B"; break;
+    case 3: _os << "_C"; break;
+    case 4: _os << "_D"; break;
+    }
+  }
+}
+
+
+void RPCGeomServ::streamName(std::ostream & _os) const
+{
+  int region = _id->region();
+  int gap = _id->gap();
+  streamRollName(_os);
+  if (region == 0)
+  {
+    switch (gap)
+    {
+    case 1: _os << "_Down"; break;
+    case 2: _os << "_Up"; break;
+    }
+  }
+  else
+  {
+    switch (gap)
+    {
+    case 1: _os << "_Bottom"; break;
+    case 2: _os << "_Top"; break;
+    }
+  }
+}
 
 RPCGeomServ::RPCGeomServ::RPCGeomServ( const RPCDetId& id )
   : _id( &id ),
@@ -15,105 +113,29 @@ RPCGeomServ::RPCGeomServ::RPCGeomServ( const RPCDetId& id )
 
 RPCGeomServ::~RPCGeomServ( void )
 {}
- 
-std::string 
+
+std::string
 RPCGeomServ::name( void )
 {
   if( _n.size() < 1 )
   {
-    int station = _id->station();
-    int region = _id->region();
-    int roll = _id->roll();
-    int ring = _id->ring();
-    int layer = _id->layer();
-    int sector = _id->sector();
-    int subsector = _id->subsector();
-
     std::stringstream os;
-    
-    if( region == 0 )
-    {
-      os << "W";
-      os << std::setw(2) << std::setfill('+') << ring
-	 << std::setfill(' ') << "_";
-
-      os << "RB" << station;
-      if ( station <= 2){
-	(layer == 1 ) ? os << "in" : os << "out";
-	
-      }else if( station > 2 )
-      {
-	if( sector == 4 && station == 4 )
-	{
-	  if( subsector == 1 )
-	  {
-	    os << "--";
-	  }
-	  else if( subsector == 2 )
-	  {
-	    os << "-";
-	  }
-	  else if( subsector == 3 )
-	  {
-	    os << "+";
-	  }
-	  else if( subsector == 4 )
-	  {
-	    os << "++";
-	  }
-	}
-	  
-	if( station == 3 )
-	{
-	  if( subsector == 1 )
-	    os << "-";
-	  else
-	    os << "+";
-	}	
-	else if( station == 4
-		 && sector != 9
-		 && sector !=11
-		 && sector != 4 )
-	{
-	  if( subsector == 1 )
-	    os << "-";
-	  else
-	    os << "+";
-	}
-      }
-	
-      os << "_";
-      os << "S" << std::setw(2) << std::setfill('0')
-	 << sector << std::setfill(' ');
-      if( roll == 1 )
-	os << "_Backward";
-      else if( roll == 3 )
-	os << "_Forward";
-      else if( roll == 2 )
-	os << "_Middle";
-    }
-    else
-    {
-      os << "RE";
-
-      os << std::setw(2) << std::setfill('+') << station * region
-	 << std::setfill(' ') << "_";
-
-      os << "R" << ring;
-      os << "_CH" << std::setw(2) << std::setfill('0') << this->segment();
-
-      if( roll == 1 )
-	os << "_A";
-      else if( roll == 2 )
-	os << "_B";
-      else if( roll == 3 )
-	os << "_C";
-      else if( roll == 4 )
-	os << "_D";
-    }
+    streamName(os);
     _n = os.str();
   }
   return _n;
+}
+
+std::string 
+RPCGeomServ::rollname()
+{
+  if( _rn.size() < 1 )
+  {
+    std::stringstream os;
+    streamRollName(os);
+    _rn = os.str();
+  }
+  return _rn;
 }
 
 std::string 
@@ -121,82 +143,8 @@ RPCGeomServ::chambername()
 {
   if( _cn.size() < 1 )
   {
-    int station = _id->station();
-    int region = _id->region();
-    int ring = _id->ring();
-    int layer = _id->layer();
-    int sector = _id->sector();
-    int subsector = _id->subsector();
-
     std::stringstream os;
-    
-    if( region == 0 )
-    {
-      os << "W";
-
-      os << std::setw(2) << std::setfill('+') << ring
-	 << std::setfill(' ') << "_";
-
-      os << "RB" << station;
-      if ( station <= 2 ) {
-	
-	(layer == 1 ) ? os << "in" : os << "out";
-	
-      }else if( station > 2 )
-      {
-	if( sector == 4 && station == 4 )
-	{
-	  if( subsector == 1 )
-	  {
-	    os << "--";
-	  }
-	  else if( subsector == 2 )
-	  {
-	    os << "-";
-	  }
-	  else if( subsector == 3 )
-	  {
-	    os << "+";
-	  }
-	  else if( subsector == 4 )
-	  {
-	    os <<"++";
-	  }
-	}
-	  
-	if( station == 3 )
-	{
-	  if( subsector == 1 )
-	    os << "-";
-	  else
-	    os << "+";
-	}
-	else if( station == 4
-		 && sector != 9
-		 && sector != 11
-		 && sector != 4 )
-	{
-	  if( subsector == 1 )
-	    os << "-";
-	  else
-	    os << "+";
-	}
-      }
-	
-      os << "_";
-      os << "S" << std::setw(2) << std::setfill('0')
-	 << sector << std::setfill(' ');
-    }
-    else
-    {
-      os << "RE"; 
-    
-      os << std::setw(2) << std::setfill('+') << station * region
-	 << std::setfill(' ') << "_";
-
-      os << "R" << ring;
-      os << "_CH" << std::setw(2) << std::setfill('0') << this->segment();
-    }
+    streamChamberName(os);
     _cn = os.str();
   }
   return _cn;
@@ -214,6 +162,7 @@ RPCGeomServ::shortname( void )
     int layer = _id->layer();
     int sector = _id->sector();
     int subsector = _id->subsector();
+    int gap = _id->gap();
 
     std::stringstream os;
 
@@ -229,27 +178,18 @@ RPCGeomServ::shortname( void )
       {
 	if( sector == 4 && station == 4 )
 	{
-	  if( subsector == 1 )
-	  {
-	    os << "--";
-	  }
-	  else if( subsector == 2 )
-	  {
-	    os << ",-";
-	  }
-	  else if( subsector == 3 )
-	  {
-	    os << "+";
-	  }
-	  else if( subsector == 4 )
-	  {
-	    os << "++";
-	  }
+          switch (subsector)
+          {
+            case 1: os << "--"; break;
+            case 2: os << "-"; break;
+            case 3: os << "+"; break;
+            case 4: os << "++"; break;
+          }
 	}
 	else
 	{
 	  if( subsector == 1 )
-	    os << ",-";
+	    os << "-";
 	  else
 	    os << "+";
 	}
@@ -260,10 +200,20 @@ RPCGeomServ::shortname( void )
 	os << " F";
       else if( roll == 2 )
 	os << " M";
+      switch (gap)
+      {
+        case 1: os << "_d"; break;
+        case 2: os << "_u"; break;
+      }
     }
     else
     {
       os << "Ri" << ring << " Su" << subsector;
+      switch (gap)
+      {
+        case 1: os << "_b"; break;
+        case 2: os << "_t"; break;
+      }
     }
     _sn = os.str();
   }
@@ -464,7 +414,7 @@ RPCGeomServ::chambernr()
 }
 
 int 
-RPCGeomServ::segment( void )
+RPCGeomServ::segment() const
 {
   int nsub = 6;
   int station = _id->station();

@@ -34,10 +34,10 @@ RPCDetId::RPCDetId(DetId id):DetId(id),trind(0) {
 
 
 
-RPCDetId::RPCDetId(int region, int ring, int station, int sector, int layer,int subsector, int roll):	      
-  DetId(DetId::Muon, MuonSubdetId::RPC),trind(0)
+RPCDetId::RPCDetId(int region, int ring, int station, int sector, int layer,int subsector, int roll, int gap)
+  : DetId(DetId::Muon, MuonSubdetId::RPC),trind(0)
 {
-  this->init(region,ring,station,sector,layer,subsector,roll);
+  this->init(region,ring,station,sector,layer,subsector,roll,gap);
 }
 
 
@@ -211,7 +211,7 @@ RPCDetId::buildfromTrIndex(int trIndex)
 
 void
 RPCDetId::init(int region,int ring,int station,int sector,
-	       int layer,int subsector,int roll)
+	       int layer,int subsector,int roll,int gap)
 {
   int minRing=0;
   int maxRing=RPCDetId::maxRingForwardId;
@@ -227,7 +227,8 @@ RPCDetId::init(int region,int ring,int station,int sector,
        sector     < minSectorId    || sector    > maxSectorId ||
        layer      < minLayerId     || layer     > maxLayerId ||
        subsector  < minSubSectorId || subsector > maxSubSectorId ||
-       roll       < minRollId      || roll      > maxRollId) {
+       roll       < minRollId      || roll      > maxRollId ||
+       gap        < minGapId       || gap       > maxGapId) {
     throw cms::Exception("InvalidDetId") << "RPCDetId ctor:" 
 					 << " Invalid parameters: " 
 					 << " region "<<region
@@ -237,6 +238,7 @@ RPCDetId::init(int region,int ring,int station,int sector,
 					 << " layer "<<layer
 					 << " subsector "<<subsector
 					 << " roll "<<roll
+					 << " gap "<<gap
 					 << std::endl;
   }
 	      
@@ -251,6 +253,7 @@ RPCDetId::init(int region,int ring,int station,int sector,
   int layerInBits=layer-minLayerId;
   int subSectorInBits=subsector-(minSubSectorId+1);
   int rollInBits=roll;
+  int gapInBits=gap;
   
   id_ |= ( regionInBits    & RegionMask_)    << RegionStartBit_    | 
          ( ringInBits      & RingMask_)      << RingStartBit_      |
@@ -258,7 +261,8 @@ RPCDetId::init(int region,int ring,int station,int sector,
          ( sectorInBits    & SectorMask_)    << SectorStartBit_    |
          ( layerInBits     & LayerMask_)     << LayerStartBit_     |
          ( subSectorInBits & SubSectorMask_) << SubSectorStartBit_ |
-         ( rollInBits      & RollMask_)      << RollStartBit_        ;
+         ( rollInBits      & RollMask_)      << RollStartBit_      |
+         ( gapInBits       & GapMask_)       << GapStartBit_;
    
 }
 
@@ -274,6 +278,7 @@ std::ostream& operator<<( std::ostream& os, const RPCDetId& id ){
      << " La "<<id.layer()
      << " Su "<<id.subsector()
      << " Ro "<<id.roll()
+     << " Ga "<<id.gap()
      << " Tr "<<id.trIndex()
      <<" ";
 
