@@ -213,20 +213,28 @@ void
 RPCDetId::init(int region,int ring,int station,int sector,
 	       int layer,int subsector,int roll)
 {
-  int minRing=0;
+  int minRing=RPCDetId::minRingForwardId;
   int maxRing=RPCDetId::maxRingForwardId;
-  if (!region) 
+  int minSector=RPCDetId::minSectorForwardId;
+  int maxSector=RPCDetId::maxSectorForwardId;
+  int minSubSector=RPCDetId::minSubSectorForwardId;
+  int maxSubSector=RPCDetId::maxSubSectorForwardId;
+  if (!region)
     {
       minRing=RPCDetId::minRingBarrelId;
       maxRing=RPCDetId::maxRingBarrelId;
-    } 
-  
+      minSector=RPCDetId::minSectorBarrelId;
+      maxSector=RPCDetId::maxSectorBarrelId;
+      minSubSector=RPCDetId::minSubSectorBarrelId;
+      maxSubSector=RPCDetId::maxSubSectorBarrelId;
+    }
+
   if ( region     < minRegionId    || region    > maxRegionId ||
        ring       < minRing        || ring      > maxRing ||
        station    < minStationId   || station   > maxStationId ||
-       sector     < minSectorId    || sector    > maxSectorId ||
+       sector     < minSector      || sector    > maxSector ||
        layer      < minLayerId     || layer     > maxLayerId ||
-       subsector  < minSubSectorId || subsector > maxSubSectorId ||
+       subsector  < minSubSector   || subsector > maxSubSector ||
        roll       < minRollId      || roll      > maxRollId) {
     throw cms::Exception("InvalidDetId") << "RPCDetId ctor:" 
 					 << " Invalid parameters: " 
