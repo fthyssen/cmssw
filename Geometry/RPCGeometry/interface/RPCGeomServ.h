@@ -3,9 +3,16 @@
 
 #include <string>
 #include <vector>
+#include <iosfwd>
 
 class RPCDetId;
 class RPCGeomServ{
+protected:
+  void streamChamberName(std::ostream & _os) const;
+  void streamRollName(std::ostream & _os) const;
+public:
+  void streamName(std::ostream & _os) const;
+
  public:
   RPCGeomServ(const RPCDetId& id);
   virtual ~RPCGeomServ();
@@ -14,7 +21,7 @@ class RPCGeomServ{
   virtual std::string chambername();
   virtual int eta_partition(); 
   virtual int chambernr();
-  virtual int segment();
+  virtual int segment() const;
   virtual bool inverted();
   virtual bool zpositive();
   virtual bool aclockwise();
@@ -34,4 +41,7 @@ protected:
   bool _a;
 
 };
+
+std::ostream & operator<<(std::ostream & _os, RPCGeomServ const & _rpcgeomserv);
+
 #endif
