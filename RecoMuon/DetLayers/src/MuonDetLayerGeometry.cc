@@ -121,7 +121,7 @@ DetId MuonDetLayerGeometry::makeDetLayerId(const DetLayer* detLayer) const{
   else if(detLayer->subDetector()== GeomDetEnumerators::RPCBarrel ||
 	  detLayer->subDetector()== GeomDetEnumerators::RPCEndcap){
     RPCDetId id( detLayer->basicComponents().front()->geographicalId().rawId());
-    return RPCDetId(id.region(),0,id.station(),0,id.layer(),0,0);
+    return RPCDetId(id.region(),1,id.station(),1,id.layer(),1,0);
   }
   else throw cms::Exception("InvalidModuleIdentification"); // << detLayer->module();
 }
@@ -233,7 +233,7 @@ const DetLayer* MuonDetLayerGeometry::idToLayer(const DetId &detId) const{
   }
   else if (detId.subdetId() == MuonSubdetId::RPC){
     RPCDetId rpcId(detId.rawId() );
-    id = RPCDetId(rpcId.region(),0,rpcId.station(),0,rpcId.layer(),0,0);
+    id = RPCDetId(rpcId.region(),1,rpcId.station(),1,rpcId.layer(),1,0);
   }
 
   else throw cms::Exception("InvalidSubdetId")<< detId.subdetId();

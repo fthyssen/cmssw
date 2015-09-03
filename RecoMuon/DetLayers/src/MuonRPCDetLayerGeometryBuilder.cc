@@ -190,8 +190,8 @@ MuonRPCDetLayerGeometryBuilder::buildBarrelLayers(const RPCGeometry& geo) {
     vector<const GeomDet*> geomDets;
 
     for(int layer=RPCDetId::minLayerId; layer<= RPCDetId::maxLayerId;++layer){
-      for(int sector = RPCDetId::minSectorId; sector <= RPCDetId::maxSectorId; sector++) {
-	for(int subsector = RPCDetId::minSubSectorId; subsector <= RPCDetId::maxSubSectorId; subsector++) {
+      for(int sector = RPCDetId::minSectorBarrelId; sector <= RPCDetId::maxSectorBarrelId; sector++) {
+	for(int subsector = RPCDetId::minSubSectorBarrelId; subsector <= RPCDetId::maxSubSectorBarrelId; subsector++) {
 	  for(int wheel = RPCDetId::minRingBarrelId; wheel <= RPCDetId::maxRingBarrelId; wheel++) {
 	    for(int roll=RPCDetId::minRollId+1; roll <= RPCDetId::maxRollId; roll++){         
 	      const GeomDet* geomDet = geo.idToDet(RPCDetId(region,wheel,station,sector,layer,subsector,roll));
