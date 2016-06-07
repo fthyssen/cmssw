@@ -1,0 +1,116 @@
+#ifndef CondFormats_RPCObjects_RPCFebConnector_icc
+#define CondFormats_RPCObjects_RPCFebConnector_icc
+
+#include "CondFormats/RPCObjects/interface/RPCFebConnector.h"
+
+#include "FWCore/Utilities/interface/Exception.h"
+
+inline unsigned int RPCFebConnector::bit_count(::uint16_t _value)
+{
+    // sum per nibble
+    _value -= ((  (_value >> 1) & 0x7777)
+               + ((_value >> 2) & 0x3333)
+               + ((_value >> 3) & 0x1111)
+               );
+    _value = (_value + (_value >> 4)) & 0x0f0f;
+    return ((_value + (_value >> 8)) & 0x1f);
+}
+
+inline void RPCFebConnector::reset()
+{
+    first_strip_ = 1;
+    slope_ = 1;
+    pins_ = 0x0;
+    rpc_det_id_ = RPCDetId(0, 0, 1, 1, 1, 1, 0).rawId();
+}
+
+inline RPCDetId RPCFebConnector::getRPCDetId() const
+{
+    return RPCDetId(rpc_det_id_);
+}
+
+inline unsigned int RPCFebConnector::getFirstStrip() const
+{
+    return first_strip_;
+}
+
+inline int RPCFebConnector::getSlope() const
+{
+    return slope_;
+}
+
+inline ::uint16_t RPCFebConnector::getPins() const
+{
+    return pins_;
+}
+
+inline RPCFebConnector & RPCFebConnector::setRPCDetId(RPCDetId const & _rpc_det_id)
+{
+    rpc_det_id_ = _rpc_det_id.rawId();
+    return *this;
+}
+
+inline RPCFebConnector & RPCFebConnector::setFirstStrip(unsigned int _first_strip)
+{
+    if (_first_strip >= min_first_strip_ && _first_strip <= max_first_strip_)
+        first_strip_ = _first_strip;
+    else
+        throw cms::Exception("OutOfRange")
+            << "Out-of-range input for RPCFebConnector first strip: " << _first_strip;
+    return *this;
+}
+
+inline RPCFebConnector & RPCFebConnector::setSlope(int _slope)
+{
+    slope_ = (_slope < 0 ? -1 : 1);
+    return *this;
+}
+
+inline RPCFebConnector & RPCFebConnector::setPins(::uint16_t _pins)
+{
+    pins_ = _pins;
+    return *this;
+}
+
+inline bool RPCFebConnector::isActive(unsigned int _pin) const
+{
+    if (_pin > 0 && _pin <= npins_)
+        return (pins_ & (0x1 << (_pin - 1)));
+    return false;
+}
+
+inline unsigned int RPCFebConnector::getNPins() const
+{
+    return bit_count(pins_);
+}
+
+inline unsigned int RPCFebConnector::getStrip(unsigned int _pin) const
+{
+    if (!isActive(_pin))
+        return 0;
+    int _active_pins = bit_count(::uint16_t(pins_ & ((0x1 << (_pin - 1)) - 1)));
+    return (int)first_strip_ + slope_ * _active_pins;
+}
+
+inline bool RPCFebConnector::hasStrip(unsigned int _strip) const
+{
+    int _offset = slope_ * (_strip - first_strip_);
+    return (_offset >=0 && _offset < (int)getNPins());
+}
+
+inline unsigned int RPCFebConnector::getPin(unsigned int _strip) const
+{
+    int _offset = slope_ * (_strip - first_strip_);
+    if (_offset < 0 || _offset >= (int)getNPins())
+        return 0;
+    ::uint16_t _pins(pins_);
+    for (unsigned int _pin = 1 ; _pins ; _pins >>= 1, ++_pin)
+        if (_pins & 0x1) {
+            if (!_offset)
+                return _pin;
+            --_offset;
+        }
+    return 0;
+}
+
+#endif // CondFormats_RPCObjects_RPCFebConnector_icc
