@@ -1,0 +1,180 @@
+#ifndef CondFormats_RPCObjects_RPCTwinMuxLink_icc
+#define CondFormats_RPCObjects_RPCTwinMuxLink_icc
+
+#include "CondFormats/RPCObjects/interface/RPCTwinMuxLink.h"
+
+#include "FWCore/Utilities/interface/Exception.h"
+
+inline ::uint32_t RPCTwinMuxLink::getId() const
+{
+    return id_;
+}
+
+inline RPCTwinMuxLink::operator ::uint32_t() const
+{
+    return id_;
+}
+
+inline bool RPCTwinMuxLink::matches(RPCTwinMuxLink const & _rhs) const
+{
+    return ((id_ & _rhs.getMask()) == (getMask() & _rhs.id_));
+}
+
+inline void RPCTwinMuxLink::setId(::uint32_t const & _id)
+{
+    id_ = _id;
+}
+
+inline void RPCTwinMuxLink::reset()
+{
+    id_ = 0x0;
+}
+
+// Field Getters
+inline int RPCTwinMuxLink::getFED() const
+{
+    return bf_get(min_fed_, mask_fed_, pos_fed_);
+}
+
+inline int RPCTwinMuxLink::getAMCNumber() const
+{
+    return bf_get(min_amcnumber_, mask_amcnumber_, pos_amcnumber_);
+}
+
+inline int RPCTwinMuxLink::getTMInput() const
+{
+    return bf_get(min_tminput_, mask_tminput_, pos_tminput_);
+}
+
+// Field Setters
+inline RPCTwinMuxLink & RPCTwinMuxLink::setFED(int _fed)
+{
+    return bf_set(min_fed_, max_fed_, mask_fed_, pos_fed_, _fed);
+}
+
+inline RPCTwinMuxLink & RPCTwinMuxLink::setAMCNumber(int _amcnumber)
+{
+    return bf_set(min_amcnumber_, max_amcnumber_, mask_amcnumber_, pos_amcnumber_, _amcnumber);
+}
+
+inline RPCTwinMuxLink & RPCTwinMuxLink::setTMInput(int _tminput)
+{
+    return bf_set(min_tminput_, max_tminput_, mask_tminput_, pos_tminput_, _tminput);
+}
+
+inline bool RPCTwinMuxLink::operator<(RPCTwinMuxLink const & _rhs) const
+{
+    return (id_ < _rhs.id_);
+}
+
+inline bool RPCTwinMuxLink::operator==(RPCTwinMuxLink const & _rhs) const
+{
+    return (id_ == _rhs.id_);
+}
+
+inline bool RPCTwinMuxLink::operator!=(RPCTwinMuxLink const & _rhs) const
+{
+    return (id_ != _rhs.id_);
+}
+
+inline bool RPCTwinMuxLink::operator<(::uint32_t const & _rhs) const
+{
+    return (id_ < _rhs);
+}
+
+inline bool RPCTwinMuxLink::operator==(::uint32_t const & _rhs) const
+{
+    return (id_ == _rhs);
+}
+
+inline bool RPCTwinMuxLink::operator!=(::uint32_t const & _rhs) const
+{
+    return (id_ != _rhs);
+}
+
+inline RPCTwinMuxLink & RPCTwinMuxLink::operator++()
+{
+    int _value(0);
+    if ((_value = getFED()) != wildcard_) {
+        if (_value < max_fed_)
+            return setFED(_value + 1);
+        setFED(min_fed_);
+    }
+    if ((_value = getAMCNumber()) != wildcard_) {
+        if (_value < max_amcnumber_)
+            return setAMCNumber(_value + 1);
+        setAMCNumber(min_amcnumber_);
+    }
+    if ((_value = getTMInput()) != wildcard_) {
+        if (_value < max_tminput_)
+            return setTMInput(_value + 1);
+        setTMInput(min_tminput_);
+    }
+    return *this;
+}
+
+inline RPCTwinMuxLink RPCTwinMuxLink::operator++(int)
+{
+    RPCTwinMuxLink _return(*this);
+    ++(*this);
+    return _return;
+}
+
+inline RPCTwinMuxLink & RPCTwinMuxLink::operator--()
+{
+    int _value(0);
+    if ((_value = getFED()) != wildcard_) {
+        if (_value > min_fed_)
+            return setFED(_value - 1);
+        setFED(max_fed_);
+    }
+    if ((_value = getAMCNumber()) != wildcard_) {
+        if (_value > min_amcnumber_)
+            return setAMCNumber(_value - 1);
+        setAMCNumber(max_amcnumber_);
+    }
+    if ((_value = getTMInput()) != wildcard_) {
+        if (_value > min_tminput_)
+            return setTMInput(_value - 1);
+        setTMInput(max_tminput_);
+    }
+    return *this;
+}
+
+inline RPCTwinMuxLink RPCTwinMuxLink::operator--(int)
+{
+    RPCTwinMuxLink _return(*this);
+    --(*this);
+    return _return;
+}
+
+inline int RPCTwinMuxLink::bf_get(int const _min, ::uint32_t const _mask, int const _pos) const
+{
+    ::uint32_t _value(id_ & _mask);
+    if (_value == 0)
+        return wildcard_;
+    return _min + (int)(_value >> _pos) - 1;
+}
+
+inline RPCTwinMuxLink & RPCTwinMuxLink::bf_set(int const _min, int const _max, ::uint32_t const _mask, int const _pos, int const _value)
+{
+    if (_value >= _min && _value <= _max) {
+        id_ &= ~_mask;
+        id_ |= (((::uint32_t)(_value - _min + 1) << _pos) & _mask);
+    } else if (_value == wildcard_)
+        id_ &= ~_mask;
+    else
+        throw cms::Exception("OutOfRange")
+            << "Out-of-range input for RPCTwinMuxLink::bf_set, position " << _pos << ": " << _value;
+    return *this;
+}
+
+inline std::ostream &  RPCTwinMuxLink::bf_stream(std::ostream & _ostream, int const _min, ::uint32_t const _mask, int const _pos) const
+{
+    ::uint32_t _value(id_ & _mask);
+    if (_value == 0)
+        return (_ostream << '*');
+    return (_ostream << (_min + (int)(_value >> _pos) - 1));
+}
+
+#endif // CondFormats_RPCObjects_RPCTwinMuxLink_icc
