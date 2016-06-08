@@ -1,0 +1,327 @@
+#ifndef DPGAnalysis_RPC_RPCDCCRecord_icc
+#define DPGAnalysis_RPC_RPCDCCRecord_icc
+
+#include "DPGAnalysis/RPC/interface/RPCDCCRecord.h"
+
+namespace rpcdcc {
+
+inline Record::Record(::uint16_t const _record)
+    : record_(_record)
+{}
+
+inline unsigned int Record::getType(::uint16_t const _record)
+{
+    if ((_record & not_cd_identifier_mask_) != not_cd_identifier_)
+        return cd_type_;
+    if ((_record & empty_identifier_mask_) == empty_identifier_)
+        return empty_type_;
+    if ((_record & sddm_identifier_mask_) == sddm_identifier_)
+        return sddm_type_;
+    if ((_record & rdm_identifier_mask_) == rdm_identifier_)
+        return rdm_type_;
+    if ((_record & sld_identifier_mask_) == sld_identifier_)
+        return sld_type_;
+    if ((_record & rddm_identifier_mask_) == rddm_identifier_)
+        return rddm_type_;
+    if ((_record & rcdm_identifier_mask_) == rcdm_identifier_)
+        return rcdm_type_;
+    if ((_record & sbxd_identifier_mask_) == sbxd_identifier_)
+        return sbxd_type_;
+    return unknown_type_;
+}
+
+inline unsigned int Record::getType() const
+{
+    return getType(record_);
+}
+
+inline void Record::set(::uint16_t const _record)
+{
+    record_ = _record;
+}
+
+inline void Record::reset()
+{
+    record_ = 0x0;
+}
+
+inline ::uint16_t const & Record::getRecord() const
+{
+    return record_;
+}
+
+inline SBXDRecord::SBXDRecord(::uint16_t const _record)
+    : record_(_record)
+{}
+
+inline void SBXDRecord::set(::uint16_t const _record)
+{
+    record_ = _record;
+}
+
+inline void SBXDRecord::reset()
+{
+    record_ = Record::sbxd_identifier_;
+}
+
+inline ::uint16_t const & SBXDRecord::getRecord() const
+{
+    return record_;
+}
+
+inline unsigned int SBXDRecord::getBX() const
+{
+    return (record_ & bx_mask_) >> bx_offset_;
+}
+
+inline void SBXDRecord::setBX(unsigned int _bx)
+{
+    record_ &= ~bx_mask_;
+    record_ |= (((::uint16_t)(_bx) << bx_offset_) & bx_mask_);
+}
+
+inline SLDRecord::SLDRecord(::uint16_t const _record)
+    : record_(_record)
+{}
+
+inline void SLDRecord::set(::uint16_t const _record)
+{
+    record_ = _record;
+}
+
+inline void SLDRecord::reset()
+{
+    record_ = Record::sld_identifier_;
+}
+
+inline ::uint16_t const & SLDRecord::getRecord() const
+{
+    return record_;
+}
+
+inline unsigned int SLDRecord::getDCCInput() const
+{
+    return (record_ & dcc_input_mask_) >> dcc_input_offset_;
+}
+
+inline unsigned int SLDRecord::getTBInput() const
+{
+    return (record_ & tb_input_mask_) >> tb_input_offset_;
+}
+
+inline void SLDRecord::setDCCInput(unsigned int _dcc_input)
+{
+    record_ &= ~dcc_input_mask_;
+    record_ |= (((::uint16_t)(_dcc_input) << dcc_input_offset_) & dcc_input_mask_);
+}
+
+inline void SLDRecord::setTBInput(unsigned int _tb_input)
+{
+    record_ &= ~tb_input_mask_;
+    record_ |= (((::uint16_t)(_tb_input) << tb_input_offset_) & tb_input_mask_);
+}
+
+inline CDRecord::CDRecord(::uint16_t const _record)
+    : record_(_record)
+{}
+
+inline void CDRecord::set(::uint16_t const _record)
+{
+    record_ = _record;
+}
+
+inline void CDRecord::reset()
+{
+    record_ = 0x0;
+}
+
+inline ::uint16_t const & CDRecord::getRecord() const
+{
+    return record_;
+}
+
+inline unsigned int CDRecord::getLinkBoard() const
+{
+    return (record_ & link_board_mask_) >> link_board_offset_;
+}
+
+inline unsigned int CDRecord::getConnector() const
+{
+    return (record_ & connector_mask_) >> connector_offset_;
+}
+
+inline unsigned int CDRecord::getPartition() const
+{
+    return (record_ & partition_mask_) >> partition_offset_;
+}
+
+inline ::uint8_t CDRecord::getData() const
+{
+    return (record_ & data_mask_) >> data_offset_;
+}
+
+inline bool CDRecord::isEOD() const
+{
+    return ((record_ & eod_mask_) ? true : false);
+}
+
+inline bool CDRecord::isHalfPartition() const
+{
+    return ((record_ & hp_mask_) ? true : false);
+}
+
+inline void CDRecord::setLinkBoard(unsigned int _link_board)
+{
+    record_ &= ~link_board_mask_;
+    record_ |= (((::uint16_t)(_link_board) << link_board_offset_) & link_board_mask_);
+}
+
+inline void CDRecord::setConnector(unsigned int _connector)
+{
+    record_ &= ~connector_mask_;
+    record_ |= (((::uint16_t)(_connector) << connector_offset_) & connector_mask_);
+}
+
+inline void CDRecord::setPartition(unsigned int _partition)
+{
+    record_ &= ~partition_mask_;
+    record_ |= (((::uint16_t)(_partition) << partition_offset_) & partition_mask_);
+}
+
+inline void CDRecord::setData(::uint8_t _data)
+{
+    record_ &= ~data_mask_;
+    record_ |= (((::uint16_t)(_data) << data_offset_) & data_mask_);
+}
+
+inline void CDRecord::setEOD(bool _eod)
+{
+    if (_eod)
+        record_ |= eod_mask_;
+    else
+        record_ &= ~(eod_mask_);
+}
+
+inline void CDRecord::setHalfPartition(bool _hp)
+{
+    if (_hp)
+        record_ |= hp_mask_;
+    else
+        record_ &= ~(hp_mask_);
+}
+
+inline RDDMRecord::RDDMRecord(::uint16_t const _record)
+    : record_(_record)
+{}
+
+inline void RDDMRecord::set(::uint16_t const _record)
+{
+    record_ = _record;
+}
+
+inline void RDDMRecord::reset()
+{
+    record_ = Record::rddm_identifier_;
+}
+
+inline ::uint16_t const & RDDMRecord::getRecord() const
+{
+    return record_;
+}
+
+inline unsigned int RDDMRecord::getDCCInput() const
+{
+    return (record_ & dcc_input_mask_) >> dcc_input_offset_;
+}
+
+inline unsigned int RDDMRecord::getTBInput() const
+{
+    return (record_ & tb_input_mask_) >> tb_input_offset_;
+}
+
+inline void RDDMRecord::setDCCInput(unsigned int _dcc_input)
+{
+    record_ &= ~dcc_input_mask_;
+    record_ |= (((::uint16_t)(_dcc_input) << dcc_input_offset_) & dcc_input_mask_);
+}
+
+inline void RDDMRecord::setTBInput(unsigned int _tb_input)
+{
+    record_ &= ~tb_input_mask_;
+    record_ |= (((::uint16_t)(_tb_input) << tb_input_offset_) & tb_input_mask_);
+}
+
+inline RCDMRecord::RCDMRecord(::uint16_t const _record)
+    : record_(_record)
+{}
+
+inline void RCDMRecord::set(::uint16_t const _record)
+{
+    record_ = _record;
+}
+
+inline void RCDMRecord::reset()
+{
+    record_ = Record::rcdm_identifier_;
+}
+
+inline ::uint16_t const & RCDMRecord::getRecord() const
+{
+    return record_;
+}
+
+inline unsigned int RCDMRecord::getDCCInput() const
+{
+    return (record_ & dcc_input_mask_) >> dcc_input_offset_;
+}
+
+inline unsigned int RCDMRecord::getTBInput() const
+{
+    return (record_ & tb_input_mask_) >> tb_input_offset_;
+}
+
+inline void RCDMRecord::setDCCInput(unsigned int _dcc_input)
+{
+    record_ &= ~dcc_input_mask_;
+    record_ |= (((::uint16_t)(_dcc_input) << dcc_input_offset_) & dcc_input_mask_);
+}
+
+inline void RCDMRecord::setTBInput(unsigned int _tb_input)
+{
+    record_ &= ~tb_input_mask_;
+    record_ |= (((::uint16_t)(_tb_input) << tb_input_offset_) & tb_input_mask_);
+}
+
+inline RDMRecord::RDMRecord(::uint16_t const _record)
+    : record_(_record)
+{}
+
+inline void RDMRecord::set(::uint16_t const _record)
+{
+    record_ = _record;
+}
+
+inline void RDMRecord::reset()
+{
+    record_ = Record::rdm_identifier_;
+}
+
+inline ::uint16_t const & RDMRecord::getRecord() const
+{
+    return record_;
+}
+
+inline unsigned int RDMRecord::getDCCInput() const
+{
+    return (record_ & dcc_input_mask_) >> dcc_input_offset_;
+}
+
+inline void RDMRecord::setDCCInput(unsigned int _dcc_input)
+{
+    record_ &= ~dcc_input_mask_;
+    record_ |= (((::uint16_t)(_dcc_input) << dcc_input_offset_) & dcc_input_mask_);
+}
+
+} // namespace rpcdcc
+
+#endif // DPGAnalysis_RPC_RPCDCCRecord_icc

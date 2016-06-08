@@ -1,0 +1,21 @@
+<use name="root" />
+<use name="boost" />
+
+<use name="CommonTools/UtilAlgos" />
+<use name="CondFormats/DataRecord" />
+<use name="CondFormats/RPCObjects" />
+<use name="DPGAnalysis/RPC" />
+<use name="DPGAnalysis/Tools" />
+<use name="DataFormats/Common" />
+<use name="DataFormats/FEDRawData" />
+<use name="DataFormats/MuonDetId" />
+<use name="DataFormats/RPCDigi" />
+<use name="FWCore/Framework" />
+<use name="FWCore/MessageLogger" />
+<use name="FWCore/ParameterSet" />
+<use name="FWCore/ServiceRegistry" />
+<use name="FWCore/Utilities" />
+<use name="Geometry/RPCGeometry" />
+<use name="Geometry/Records" />
+
+<flags EDM_PLUGIN="1" />

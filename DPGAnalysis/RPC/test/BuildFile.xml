@@ -1,0 +1,9 @@
+<use name="FWCore/Framework" />
+
+<library file="RPCMaskParserTest.cc" name="RPCMaskParserTest">
+  <use name="Geometry/Records" />
+  <use name="Geometry/RPCGeometry" />
+  <use name="DPGAnalysis/RPC" />
+  <use name="DataFormats/MuonDetId" />
+  <flags EDM_PLUGIN="1" />
+</library>
