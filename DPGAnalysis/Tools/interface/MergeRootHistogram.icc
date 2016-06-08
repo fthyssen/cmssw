@@ -1,0 +1,98 @@
+#ifndef DPGAnalysis_Tools_MergeRootHistogram_icc
+#define DPGAnalysis_Tools_MergeRootHistogram_icc
+
+#include "DPGAnalysis/Tools/interface/MergeRootHistogram.h"
+
+#include "TObject.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
+template<typename t_value_type, unsigned int t_dimensions>
+inline MergeRootHistogram<t_value_type, t_dimensions>::MergeRootHistogram(std::string const & _name, std::string const & _title
+                                                                          , ::TAxis const & _x_axis
+                                                                          , ::TAxis const & _y_axis
+                                                                          , ::TAxis const & _z_axis)
+    : histogram_()
+{
+    histogram_.SetDirectory(0);
+    histogram_.SetNameTitle(_name.c_str(), _title.c_str());
+
+    if (t_dimensions == 1) {
+        histogram_.SetBins(_x_axis.GetNbins(), _x_axis.GetXmin(), _x_axis.GetXmax());
+        TObject * _axis_parent(histogram_.GetXaxis()->GetParent());
+        _x_axis.Copy(*(histogram_.GetXaxis()));
+        _y_axis.Copy(*(histogram_.GetYaxis()));
+        histogram_.GetXaxis()->SetParent(_axis_parent);
+        histogram_.GetYaxis()->SetParent(_axis_parent);
+        histogram_.GetXaxis()->SetName("xaxis");
+        histogram_.GetYaxis()->SetName("yaxis");
+    } else if (t_dimensions == 2) {
+        histogram_.SetBins(_x_axis.GetNbins(), _x_axis.GetXmin(), _x_axis.GetXmax()
+                           , _y_axis.GetNbins(), _y_axis.GetXmin(), _y_axis.GetXmax());
+        TObject * _axis_parent(histogram_.GetXaxis()->GetParent());
+        _x_axis.Copy(*(histogram_.GetXaxis()));
+        _y_axis.Copy(*(histogram_.GetYaxis()));
+        _z_axis.Copy(*(histogram_.GetZaxis()));
+        histogram_.GetXaxis()->SetParent(_axis_parent);
+        histogram_.GetYaxis()->SetParent(_axis_parent);
+        histogram_.GetZaxis()->SetParent(_axis_parent);
+        histogram_.GetXaxis()->SetName("xaxis");
+        histogram_.GetYaxis()->SetName("yaxis");
+        histogram_.GetZaxis()->SetName("zaxis");
+    } else {
+        histogram_.SetBins(_x_axis.GetNbins(), _x_axis.GetXmin(), _x_axis.GetXmax()
+                           , _y_axis.GetNbins(), _y_axis.GetXmin(), _y_axis.GetXmax()
+                           , _z_axis.GetNbins(), _z_axis.GetXmin(), _z_axis.GetXmax());
+        TObject * _axis_parent(histogram_.GetXaxis()->GetParent());
+        _x_axis.Copy(*(histogram_.GetXaxis()));
+        _y_axis.Copy(*(histogram_.GetYaxis()));
+        _z_axis.Copy(*(histogram_.GetZaxis()));
+        histogram_.GetXaxis()->SetParent(_axis_parent);
+        histogram_.GetYaxis()->SetParent(_axis_parent);
+        histogram_.GetZaxis()->SetParent(_axis_parent);
+        histogram_.GetXaxis()->SetName("xaxis");
+        histogram_.GetYaxis()->SetName("yaxis");
+        histogram_.GetZaxis()->SetName("zaxis");
+    }
+}
+
+template<typename t_value_type, unsigned int t_dimensions>
+inline typename MergeRootHistogram<t_value_type, t_dimensions>::histogram_type &
+MergeRootHistogram<t_value_type, t_dimensions>::operator*()
+{
+    return histogram_;
+}
+
+template<typename t_value_type, unsigned int t_dimensions>
+inline typename MergeRootHistogram<t_value_type, t_dimensions>::histogram_type const &
+MergeRootHistogram<t_value_type, t_dimensions>::operator*() const
+{
+    return histogram_;
+}
+
+template<typename t_value_type, unsigned int t_dimensions>
+inline typename MergeRootHistogram<t_value_type, t_dimensions>::histogram_type *
+MergeRootHistogram<t_value_type, t_dimensions>::operator->()
+{
+    return &histogram_;
+}
+
+template<typename t_value_type, unsigned int t_dimensions>
+inline typename MergeRootHistogram<t_value_type, t_dimensions>::histogram_type const *
+MergeRootHistogram<t_value_type, t_dimensions>::operator->() const
+{
+    return &histogram_;
+}
+
+template<typename t_value_type, unsigned int t_dimensions>
+inline bool MergeRootHistogram<t_value_type, t_dimensions>::mergeProduct(MergeRootHistogram<t_value_type, t_dimensions> const & _product)
+{
+    bool _ok(histogram_.Add(&(*_product)));
+    if (!_ok)
+        edm::LogError("MergeMap")
+            << "Two run/lumi Root Histograms for the same run/lumi"
+            << " could not be merged.";
+    return _ok;
+}
+
+#endif // DPGAnalysis_Tools_MergeRootHistogram_icc

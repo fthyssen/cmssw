@@ -1,0 +1,93 @@
+#ifndef DPGAnalysis_Tools_association_icc
+#define DPGAnalysis_Tools_association_icc
+
+#include "DPGAnalysis/Tools/interface/association.h"
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline association<t_key_container_type, t_value_container_type, t_distance_type
+                   , t_key_difference_storage_type, t_value_difference_storage_type>::association()
+{}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline association<t_key_container_type, t_value_container_type, t_distance_type
+                   , t_key_difference_storage_type, t_value_difference_storage_type>::association(key_difference_type _key_difference
+                                                                                                  , value_difference_type _value_difference
+                                                                                                  , distance_type _distance)
+                       : distance_(_distance)
+                       , key_difference_(_key_difference)
+                       , value_difference_(_value_difference)
+{}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline t_distance_type
+association<t_key_container_type, t_value_container_type, t_distance_type
+            , t_key_difference_storage_type, t_value_difference_storage_type>::distance() const
+{
+    return distance_;
+}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline typename t_key_container_type::difference_type
+association<t_key_container_type, t_value_container_type, t_distance_type
+            , t_key_difference_storage_type, t_value_difference_storage_type>::key_difference() const
+{
+    return key_difference_;
+}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline typename t_value_container_type::difference_type
+association<t_key_container_type, t_value_container_type, t_distance_type
+            , t_key_difference_storage_type, t_value_difference_storage_type>::value_difference() const
+{
+    return value_difference_;
+}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline void
+association<t_key_container_type, t_value_container_type, t_distance_type
+            , t_key_difference_storage_type, t_value_difference_storage_type>::distance(distance_type _distance)
+{
+    distance_ = _distance;
+}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline void
+association<t_key_container_type, t_value_container_type, t_distance_type
+            , t_key_difference_storage_type, t_value_difference_storage_type>::key_difference(key_difference_type _key_difference)
+{
+    key_difference_ = _key_difference;
+}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline void
+association<t_key_container_type, t_value_container_type, t_distance_type
+            , t_key_difference_storage_type, t_value_difference_storage_type>::value_difference(value_difference_type _value_difference)
+{
+    value_difference_ = _value_difference;
+}
+
+template<typename t_key_container_type, typename t_value_container_type, typename t_distance_type
+         , typename t_key_difference_storage_type, typename t_value_difference_storage_type>
+inline bool
+association<t_key_container_type, t_value_container_type, t_distance_type
+            , t_key_difference_storage_type, t_value_difference_storage_type>::operator<(association const & _rhs) const
+{
+    return (key_difference_ < _rhs.key_difference_ ||
+            (!(_rhs.key_difference_ < key_difference_) &&
+             (distance_ < _rhs.distance_ ||
+              (!(_rhs.distance_ < distance_)
+               && value_difference_ < _rhs.value_difference_)
+              )
+             )
+            );
+}
+
+#endif // DPGAnalysis_Tools_association_icc

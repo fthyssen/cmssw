@@ -1,0 +1,9 @@
+<use name="root" />
+
+<use name="DataFormats/Common" />
+<use name="FWCore/MessageLogger" />
+<use name="FWCore/Utilities" />
+
+<export>
+  <lib name="1" />
+</export>

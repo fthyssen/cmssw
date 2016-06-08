@@ -1,0 +1,16 @@
+#ifndef DPGAnalysis_Tools_DivergingPalette_icc
+#define DPGAnalysis_Tools_DivergingPalette_icc
+
+#include "DPGAnalysis/Tools/interface/DivergingPalette.icc"
+
+inline std::vector<TColor *> const & DivergingPalette::getColors() const
+{
+    return colors_;
+}
+
+inline int const * DivergingPalette::getPalette() const
+{
+    return &(palette_.at(0));
+}
+
+#endif // DPGAnalysis_Tools_DivergingPalette_icc

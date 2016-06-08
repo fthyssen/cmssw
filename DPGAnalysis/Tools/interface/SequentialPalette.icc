@@ -1,0 +1,16 @@
+#ifndef DPGAnalysis_Tools_SequentialPalette_icc
+#define DPGAnalysis_Tools_SequentialPalette_icc
+
+#include "DPGAnalysis/Tools/interface/SequentialPalette.icc"
+
+inline std::vector<TColor *> const & SequentialPalette::getColors() const
+{
+    return colors_;
+}
+
+inline int const * SequentialPalette::getPalette() const
+{
+    return &(palette_.at(0));
+}
+
+#endif // DPGAnalysis_Tools_SequentialPalette_icc

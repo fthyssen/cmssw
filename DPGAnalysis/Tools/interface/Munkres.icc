@@ -1,0 +1,338 @@
+#ifndef DPGAnalysis_Tools_Munkres_icc
+#define DPGAnalysis_Tools_Munkres_icc
+
+#include "DPGAnalysis/Tools/interface/Munkres.h"
+
+#include <iterator>
+#include <algorithm>
+#include <limits>
+
+template<typename t_distance_type>
+typename Munkres<t_distance_type>::distance_type const Munkres<t_distance_type>::max_ = std::numeric_limits<t_distance_type>::max();
+
+/**
+   Preliminaries. (a) k = min (n,m), no lines are cov-
+   ered, no zeros are starred or primed. (b) If the number of
+   rows is greater than the number of columns, go at once to
+   step O. Consider a particular row of the matrix (a_ij);
+   subtract the smallest element from each element in the
+   row ; do the same for all other rows. If the number of
+   columns is greater than the number of rows, go at once to
+   step 1.
+*/
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::init(std::vector<distance_type> const & _dists, int _rows, int _cols)
+{
+    step_ = 0;
+
+    rows_ = _rows;
+    cols_ = _cols;
+    k_ = std::min(_rows, _cols);
+    idxs_ = _rows * _cols;
+
+    stars_.clear();
+    stars_.reserve(idxs_);
+    stars_.assign(idxs_, false);
+    primes_.clear();
+    primes_.reserve(idxs_);
+    primes_.assign(idxs_, false);
+
+    row_cover_.clear();
+    row_cover_.reserve(rows_);
+    row_cover_.assign(rows_, false);
+    col_cover_.clear();
+    col_cover_.reserve(cols_);
+    col_cover_.assign(cols_, false);
+
+    dists_.clear();
+    dists_.reserve(idxs_);
+    typename std::vector<distance_type>::const_iterator _it_end(_dists.begin());
+    std::advance(_it_end, idxs_);
+    dists_.assign(_dists.begin(), _it_end);
+
+    zero_sequence_.clear();
+    zero_sequence_.reserve(k_ + 1);
+
+    if (rows_ > cols_)
+        return;
+
+    for (int _idx = 0 ; _idx < idxs_ ; _idx += cols_) {
+        distance_type _min = dists_[_idx];
+        for (int _col = 1 ; _col < cols_ ; ++_col)
+            if (dists_[_idx + _col] < _min)
+                _min = dists_[_idx + _col];
+        for (int _col = 0 ; _col < cols_ ; ++_col)
+            dists_[_idx + _col] -= _min;
+    }
+
+    if (cols_ > rows_)
+        step_ = 1;
+}
+
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::process()
+{
+    while (step_ < 6)
+        switch (step_) {
+        case 0:
+            step_zero();
+            break;
+        case 1:
+            step_one();
+            break;
+        case 2:
+            step_two();
+            break;
+        case 3:
+            step_three();
+            break;
+        case 4:
+            step_four();
+            break;
+        case 5:
+            step_five();
+            break;
+        }
+}
+
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::result(std::vector<std::pair<int, int> > & _result) const
+{
+    _result.reserve(_result.size() + k_);
+    int _idx(0);
+    for (int _row = 0 ; _row < rows_ ; ++_row) {
+        for (int _col = 0 ; _col < cols_ ; ++_col)
+            if (stars_[_idx + _col]) {
+                _result.push_back(std::pair<int, int>(_row, _col));
+                _col = cols_;
+            }
+        _idx += cols_;
+    }
+}
+
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::find_uncovered_zero(int & _row, int & _col) const
+{
+    int _idx(0);
+    for (_row = 0 ; _row < rows_ ; ++_row) {
+        if (!(row_cover_[_row]))
+            for (_col = 0 ; _col < cols_ ; ++_col)
+                if (dists_[_idx + _col] == 0 && !(col_cover_[_col]))
+                    return;
+        _idx += cols_;
+    }
+}
+
+template<typename t_distance_type>
+inline typename Munkres<t_distance_type>::distance_type
+Munkres<t_distance_type>::find_smallest_uncovered() const
+{
+    distance_type _min(max_);
+    int _idx(0);
+    for (int _row = 0 ; _row < rows_ ; ++_row) {
+        if (!(row_cover_[_row]))
+            for (int _col = 0 ; _col < cols_ ; ++_col)
+                if (!(col_cover_[_col]) && (dists_[_idx + _col] < _min))
+                    _min = dists_[_idx + _col];
+        _idx += cols_;
+    }
+    return _min;
+}
+
+template<typename t_distance_type>
+inline int Munkres<t_distance_type>::find_mark_in_row(int _row, std::vector<bool> const & _marks) const
+{
+    if (_row < rows_) {
+        int _idx(_row * cols_);
+        for (int _col = 0 ; _col < cols_ ; ++_col)
+            if (_marks[_idx + _col])
+                return _col;
+    }
+    return cols_;
+}
+
+template<typename t_distance_type>
+inline int Munkres<t_distance_type>::find_mark_in_col(int _col, std::vector<bool> const & _marks) const
+{
+    if (_col < cols_) {
+        int _idx(_col);
+        for (int _row = 0 ; _row < rows_ ; ++_row) {
+            if (_marks[_idx])
+                return _row;
+            _idx += cols_;
+        }
+    }
+    return rows_;
+}
+
+/**
+   For each column of the resulting matrix, subtract
+   from each entry the smallest entry in the column.
+   Go to Step 1.
+*/
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::step_zero()
+{
+    for (int _col = 0 ; _col < cols_ ; ++_col) {
+        distance_type _min = dists_[_col];
+        for (int _idx = _col + cols_ ; _idx < idxs_ ; _idx += cols_)
+            if (dists_[_idx] < _min)
+                _min = dists_[_idx];
+        for (int _idx = _col ; _idx < idxs_ ; _idx += cols_)
+            dists_[_idx] -= _min;
+    }
+    step_ = 1;
+}
+
+/**
+   Find a zero, Z, of the matrix. If there is no starred zero
+   in its row nor its column, star Z. Repeat for each zero of the matrix.
+   Go to Step 2.
+   note: also execute step 2
+*/
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::step_one()
+{
+    int _col_count(0);
+    for (int _idx = 0 ; _idx < idxs_ ; _idx += cols_)
+        for (int _col = 0 ; _col < cols_ ; ++_col)
+            if (dists_[_idx + _col] == 0 && !(col_cover_[_col])) {
+                stars_[_idx + _col] = true;
+                col_cover_[_col] = true;
+                ++_col_count;
+                _col = cols_;
+            }
+
+    if (_col_count >= k_)
+        step_ = 6;
+    else
+        step_ = 3;
+}
+
+/**
+   Cover every column containing a 0*. If k columns are
+   covered, the starred zeros form the desired independent set. Other-
+   wise, go to step 3
+*/
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::step_two()
+{
+    int _col_count(0);
+    for (int _col = 0 ; _col < cols_ ; ++_col)
+        for (int _idx = _col ; _idx < idxs_ ; _idx += cols_)
+            if (stars_[_idx]) {
+                col_cover_[_col] = true;
+                ++_col_count;
+                _idx = idxs_;
+            }
+
+    if (_col_count >= k_)
+        step_ = 6;
+    else
+        step_ = 3;
+}
+
+/**
+   Choose a noncovered zero and prime it; then consider
+   the row containing it. If there is no starred zero Z in this
+   row, go to step 4. If there is a starred zero Z in this row, cover this
+   row and uncover the column of Z. Repeat until all zeros are covered.
+   Go to step 5
+   note: keep uncovered 0' for step 4
+*/
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::step_three()
+{
+    int _row(0), _col(0);
+    find_uncovered_zero(_row, _col);
+    while (_row < rows_) {
+        primes_[_row * cols_ + _col] = true;
+
+        int _star_col = find_mark_in_row(_row, stars_);
+        if (_star_col < cols_) {
+            row_cover_[_row] = true;
+            col_cover_[_star_col] = false;
+        } else {
+            zero_sequence_.clear();
+            zero_sequence_.reserve(k_ + 1);
+            zero_sequence_.push_back(zero_sequence_pair_type(_row, _col));
+            step_ = 4;
+            return;
+        }
+        find_uncovered_zero(_row, _col);
+    }
+    step_ = 5;
+}
+
+/**
+   There is a sequence of alternating starred and primed
+   zeros constructed as follows: let Z_0 denote the uncovered 0'. Let
+   Z_1 denote the 0* in Z_0's column (if any). Let Z_2 denote the 0' in
+   Z_1's row. Continue in a similar way until the sequence stops at a
+   0', Z_2k, which has no 0* in its column. Unstar each starred zero
+   of the sequence, and star each primed zero of the sequence. Erase
+   all primes and uncover every line. Return to step 2.
+   note: don't need to keep the 0*, just unstar them
+*/
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::step_four()
+{
+    while (true) {
+        int _col = zero_sequence_.back().second;
+        int _row = find_mark_in_col(_col, stars_);
+        if (_row < rows_)
+            stars_[_row * cols_ + _col] = false;
+        else
+            break;
+        _col = find_mark_in_row(_row, primes_);
+        zero_sequence_.push_back(zero_sequence_pair_type(_row, _col));
+    }
+
+    for (zero_sequence_type::const_iterator _it = zero_sequence_.begin() ; _it != zero_sequence_.end() ; ++_it)
+        stars_[_it->first * cols_ + _it->second] = true;
+
+    primes_.assign(idxs_, false);
+    row_cover_.assign(rows_, false);
+    col_cover_.assign(cols_, false);
+
+    step_ = 2;
+}
+
+/**
+   Let h denote the smallest noncovered element of the
+   matrix; it will be positive. Add h to each covered row; then subtract
+   h from each uncovered column. Return to step 3 without altering
+   any asterisks, primes, or covered lines.
+*/
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::step_five()
+{
+    distance_type _h = find_smallest_uncovered();
+    int _idx(0);
+    for (int _row = 0 ; _row < rows_ ; ++_row) {
+        for (int _col = 0 ; _col < cols_ ; ++_col) {
+            if (row_cover_[_row])
+                dists_[_idx + _col] += _h;
+            if (!(col_cover_[_col]))
+                dists_[_idx + _col] -= _h;
+        }
+        _idx += cols_;
+    }
+    step_ = 3;
+}
+
+template<typename t_distance_type>
+inline Munkres<t_distance_type>::Munkres()
+{}
+
+template<typename t_distance_type>
+inline void Munkres<t_distance_type>::process(std::vector<distance_type> const & _dists
+                                              , int _rows, int _cols
+                                              , std::vector<std::pair<int, int> > & _result)
+{
+    init(_dists, _rows, _cols);
+    process();
+    result(_result);
+}
+
+#endif // DPGAnalysis_Tools_Munkres_icc

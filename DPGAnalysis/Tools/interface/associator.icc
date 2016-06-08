@@ -1,0 +1,184 @@
+#ifndef DPGAnalysis_Tools_associator_icc
+#define DPGAnalysis_Tools_associator_icc
+
+#include "DPGAnalysis/Tools/interface/associator.h"
+
+#include <iterator>
+#include <utility>
+#include <vector>
+#include <algorithm>
+
+#include "FWCore/Utilities/interface/Exception.h"
+
+#include "DPGAnalysis/Tools/interface/Munkres.h"
+
+namespace associator {
+
+template<typename t_associationvector_type>
+inline t_associationvector_type
+associate(typename t_associationvector_type::key_container_ptr_type _key_container_ptr
+          , typename t_associationvector_type::value_container_ptr_type _value_container_ptr
+          , typename t_associationvector_type::distance_type (*_distance_fptr) (typename t_associationvector_type::key_value_type const &
+                                                                                , typename t_associationvector_type::value_value_type const &)
+          , int _method
+          , typename t_associationvector_type::distance_type const & _max_distance)
+{
+    return associate<t_associationvector_type>(_key_container_ptr, _key_container_ptr->begin(), _key_container_ptr->end()
+                                               , _value_container_ptr, _value_container_ptr->begin(), _value_container_ptr->end()
+                                               , _distance_fptr, _method, _max_distance);
+}
+
+template<typename t_associationvector_type>
+inline t_associationvector_type
+associate(typename t_associationvector_type::key_container_ptr_type _key_container_ptr
+          , typename t_associationvector_type::key_iterator const & _key_begin
+          , typename t_associationvector_type::key_iterator const & _key_end
+          , typename t_associationvector_type::value_container_ptr_type _value_container_ptr
+          , typename t_associationvector_type::distance_type (*_distance_fptr) (typename t_associationvector_type::key_value_type const &
+                                                                                , typename t_associationvector_type::value_value_type const &)
+          , int _method
+          , typename t_associationvector_type::distance_type const & _max_distance)
+{
+    return associate<t_associationvector_type>(_key_container_ptr, _key_begin, _key_end
+                                               , _value_container_ptr, _value_container_ptr->begin(), _value_container_ptr->end()
+                                               , _distance_fptr, _method, _max_distance);
+}
+
+template<typename t_associationvector_type>
+inline t_associationvector_type
+associate(typename t_associationvector_type::key_container_ptr_type _key_container_ptr
+          , typename t_associationvector_type::value_container_ptr_type _value_container_ptr
+          , typename t_associationvector_type::value_iterator const & _value_begin
+          , typename t_associationvector_type::value_iterator const & _value_end
+          , typename t_associationvector_type::distance_type (*_distance_fptr) (typename t_associationvector_type::key_value_type const &
+                                                                                , typename t_associationvector_type::value_value_type const &)
+          , int _method
+          , typename t_associationvector_type::distance_type const & _max_distance)
+{
+    return associate<t_associationvector_type>(_key_container_ptr, _key_container_ptr->begin(), _key_container_ptr->end()
+                                               , _value_container_ptr, _value_begin, _value_end
+                                               , _distance_fptr, _method, _max_distance);
+}
+
+template<typename t_associationvector_type>
+inline t_associationvector_type
+associate(typename t_associationvector_type::key_container_ptr_type _key_container_ptr
+          , typename t_associationvector_type::key_iterator const & _key_begin
+          , typename t_associationvector_type::key_iterator const & _key_end
+          , typename t_associationvector_type::value_container_ptr_type _value_container_ptr
+          , typename t_associationvector_type::value_iterator const & _value_begin
+          , typename t_associationvector_type::value_iterator const & _value_end
+          , typename t_associationvector_type::distance_type (*_distance_fptr) (typename t_associationvector_type::key_value_type const &
+                                                                                , typename t_associationvector_type::value_value_type const &)
+          , int _method
+          , typename t_associationvector_type::distance_type const & _max_distance)
+{
+    typedef t_associationvector_type                        associationvector_type;
+    typedef typename associationvector_type::association_type
+        association_type;
+    typedef typename t_associationvector_type::key_container_ptr_type
+        key_container_ptr_type;
+    typedef typename t_associationvector_type::value_container_ptr_type
+        value_container_ptr_type;
+
+    typedef typename association_type::distance_type        distance_type;
+
+    typedef typename association_type::key_container_type   key_container_type;
+    typedef typename association_type::key_value_type       key_value_type;
+    typedef typename association_type::key_iterator         key_iterator;
+    typedef typename association_type::key_difference_type  key_difference_type;
+
+    typedef typename association_type::value_container_type value_container_type;
+    typedef typename association_type::value_value_type     value_value_type;
+    typedef typename association_type::value_iterator       value_iterator;
+    typedef typename association_type::value_difference_type
+        value_difference_type;
+
+    key_difference_type _row_offset(std::distance(_key_container_ptr->begin(), _key_begin));
+    value_difference_type _col_offset(std::distance(_value_container_ptr->begin(), _value_begin));
+
+    associationvector_type _result(_key_container_ptr, _value_container_ptr);
+
+    int _rows(std::distance(_key_begin, _key_end))
+        , _cols(std::distance(_value_begin, _value_end));
+
+    distance_type _max_distance_limit(_method == associator::one_to_one_ ? _max_distance * _rows * _cols * 2 : _max_distance);
+    if (_max_distance_limit < _max_distance && _rows != 0 && _cols != 0)
+        throw cms::Exception("OverflowError") << "Overflow will occur for Munkres Associator; adjust _max_distance.";
+
+    if (_method == associator::one_to_one_) { // munkres
+        std::vector<distance_type> _dists;
+        _dists.reserve(_rows * _cols);
+        for (key_iterator _key_it = _key_begin ; _key_it != _key_end ; ++_key_it)
+            for (value_iterator _value_it = _value_begin ; _value_it != _value_end ; ++_value_it) {
+                _dists.push_back((*_distance_fptr)(*_key_it, *_value_it));
+                if (_dists.back() >= _max_distance)
+                    _dists.back() = _max_distance_limit;
+            }
+
+        std::vector<std::pair<int, int> > _pairs;
+        Munkres<distance_type> _munkres;
+        _munkres.process(_dists, _rows, _cols, _pairs);
+
+        int _max_idx(std::max(_rows, _cols));
+        std::vector<bool> _used(_max_idx, false);
+        _result.reserve(_max_idx);
+        for (std::vector<std::pair<int, int> >::const_iterator _pair = _pairs.begin()
+                 ; _pair != _pairs.end() ; ++_pair) {
+            distance_type _dist(_dists.at(_pair->first * _cols + _pair->second));
+            if (_dist >= _max_distance) {
+                _result.push_back(association_type(_pair->first + _row_offset, -1, _max_distance));
+                _result.push_back(association_type(-1, _pair->second + _col_offset, _max_distance));
+            } else
+                _result.push_back(association_type(_pair->first + _row_offset, _pair->second + _col_offset, _dist));
+            if (_rows > _cols)
+                _used[_pair->first] = true;
+            else
+                _used[_pair->second] = true;
+        }
+
+        for (int _idx = 0 ; _idx < _max_idx ; ++_idx)
+            if (!_used.at(_idx)) {
+                if (_rows > _cols)
+                    _result.push_back(association_type(_idx + _row_offset, -1, _max_distance));
+                else
+                    _result.push_back(association_type(-1, _idx + _col_offset, _max_distance));
+            }
+
+        return _result;
+    }
+
+    // else
+
+    _result.reserve(_rows);
+
+    bool _added(false);
+
+    distance_type _dist(_max_distance), _min(_max_distance);
+    key_difference_type _row(_row_offset);
+    value_difference_type _col(_col_offset);
+
+    for (key_iterator _key_it = _key_begin ; _key_it != _key_end ; ++_key_it, ++_row) {
+        _added = false;
+        _min = _max_distance;
+        _col = _col_offset;
+        for (value_iterator _value_it = _value_begin ; _value_it != _value_end ; ++_value_it, ++_col)
+            if ((_dist = (*_distance_fptr)(*_key_it, *_value_it)) < _min ) {
+                if (_added) {
+                    _result.back().distance(_dist);
+                    _result.back().value_difference(_col);
+                } else
+                    _result.push_back(association_type(_row, _col, _dist));
+                _min = _dist;
+                _added = true;
+            }
+        if (!_added)
+            _result.push_back(association_type(_row, -1, _max_distance));
+    }
+
+    return _result;
+}
+
+} // namespace associator
+
+#endif // DPGAnalysis_Tools_associator_icc

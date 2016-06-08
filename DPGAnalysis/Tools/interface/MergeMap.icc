@@ -1,0 +1,59 @@
+#ifndef DPGAnalysis_Tools_MergeMap_icc
+#define DPGAnalysis_Tools_MergeMap_icc
+
+#include "DPGAnalysis/Tools/interface/MergeMap.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
+template<typename t_key_type, typename t_mapped_type>
+inline MergeMap<t_key_type, t_mapped_type>::MergeMap()
+{}
+
+template<typename t_key_type, typename t_mapped_type>
+inline typename MergeMap<t_key_type, t_mapped_type>::map_type &
+MergeMap<t_key_type, t_mapped_type>::operator*()
+{
+    return map_;
+}
+
+template<typename t_key_type, typename t_mapped_type>
+inline typename MergeMap<t_key_type, t_mapped_type>::map_type const &
+MergeMap<t_key_type, t_mapped_type>::operator*() const
+{
+    return map_;
+}
+
+template<typename t_key_type, typename t_mapped_type>
+inline typename MergeMap<t_key_type, t_mapped_type>::map_type *
+MergeMap<t_key_type, t_mapped_type>::operator->()
+{
+    return &map_;
+}
+
+template<typename t_key_type, typename t_mapped_type>
+inline typename MergeMap<t_key_type, t_mapped_type>::map_type const *
+MergeMap<t_key_type, t_mapped_type>::operator->() const
+{
+    return &map_;
+}
+
+template<typename t_key_type, typename t_mapped_type>
+inline bool MergeMap<t_key_type, t_mapped_type>::mergeProduct(MergeMap<t_key_type, t_mapped_type> const & _product)
+{
+    typename map_type::const_iterator _rhs_pair = _product->begin();
+    for (typename map_type::iterator _lhs_pair = map_.begin()
+             ; _lhs_pair != map_.end() && _rhs_pair != _product->end() ; ++_lhs_pair) {
+        for ( ; _rhs_pair != _product->end() && _rhs_pair->first < _lhs_pair->first ; ++_rhs_pair)
+            map_.insert(*_rhs_pair);
+        if (_rhs_pair != _product->end() && _rhs_pair->first == _lhs_pair->first) {
+            if (!_lhs_pair->second.mergeProduct(_rhs_pair->second))
+                return false;
+            ++_rhs_pair;
+        }
+    }
+    for ( ; _rhs_pair != _product->end() ; ++_rhs_pair)
+        map_.insert(*_rhs_pair);
+    return true;
+}
+
+#endif // DPGAnalysis_Tools_MergeMap_icc

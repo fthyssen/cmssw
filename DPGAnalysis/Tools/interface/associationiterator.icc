@@ -1,0 +1,286 @@
+#ifndef DPGAnalysis_Tools_associationiterator_icc
+#define DPGAnalysis_Tools_associationiterator_icc
+
+#include "DPGAnalysis/Tools/interface/associationiterator.h"
+
+template<typename t_association_type>
+inline associationiterator<t_association_type>::associationiterator()
+{}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type>::associationiterator(base_type const & _iterator
+                                                                    , key_iterator const & _key_begin
+                                                                    , value_iterator const & _value_begin)
+    : iterator_(_iterator)
+    , key_begin_(_key_begin)
+    , value_begin_(_value_begin)
+{}
+
+template<typename t_association_type>
+template<typename t_iterator_type>
+inline associationiterator<t_association_type>::associationiterator(typename boost::enable_if<boost::is_same<t_iterator_type, associationiterator>, t_iterator_type>::type const & _iterator)
+    : iterator_(_iterator.iterator_)
+    , key_begin_(_iterator.key_begin_)
+    , value_begin_(_iterator.value_begin_)
+{}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type>::associationiterator(iterator const & _iterator)
+    : iterator_(_iterator.iterator_)
+    , key_begin_(_iterator.key_begin_)
+    , value_begin_(_iterator.value_begin_)
+{}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type> &
+associationiterator<t_association_type>::operator=(iterator const & _iterator)
+{
+    if (this != (associationiterator const *)&_iterator) {
+        iterator_ = _iterator.iterator_;
+        key_begin_ = _iterator.key_begin_;
+        value_begin_ = _iterator.value_begin_;
+    }
+    return *this;
+}
+
+template<typename t_association_type>
+template<typename t_iterator_type>
+inline associationiterator<t_association_type> &
+associationiterator<t_association_type>::operator=(typename boost::enable_if<boost::is_same<t_iterator_type, associationiterator>, t_iterator_type>::type const & _iterator)
+{
+    if (this != &_iterator) {
+        iterator_ = _iterator.iterator_;
+        key_begin_ = _iterator.key_begin_;
+        value_begin_ = _iterator.value_begin_;
+    }
+    return *this;
+}
+
+template<typename t_association_type>
+inline bool
+associationiterator<t_association_type>::valid() const
+{
+    return (key_valid() && value_valid());
+}
+
+template<typename t_association_type>
+inline bool
+associationiterator<t_association_type>::key_valid() const
+{
+    return (iterator_->key_difference() > -1);
+}
+
+template<typename t_association_type>
+inline bool
+associationiterator<t_association_type>::value_valid() const
+{
+    return (iterator_->value_difference() > -1);
+}
+
+template<typename t_association_type>
+inline typename associationiterator<t_association_type>::key_iterator
+associationiterator<t_association_type>::key() const
+{
+    if (iterator_->key_difference() < 0)
+        return key_iterator();
+    key_iterator _temp(key_begin_);
+    std::advance(_temp, iterator_->key_difference());
+    return _temp;
+}
+
+template<typename t_association_type>
+inline typename associationiterator<t_association_type>::value_iterator
+associationiterator<t_association_type>::value() const
+{
+    if (iterator_->value_difference() < 0)
+        return value_iterator();
+    value_iterator _temp(value_begin_);
+    std::advance(_temp, iterator_->value_difference());
+    return _temp;
+}
+
+template<typename t_association_type>
+inline typename associationiterator<t_association_type>::distance_type
+associationiterator<t_association_type>::distance() const
+{
+    return iterator_->distance();
+}
+
+
+template<typename t_association_type>
+inline typename associationiterator<t_association_type>::base_type
+associationiterator<t_association_type>::base() const
+{
+    return iterator_;
+}
+
+template<typename t_association_type>
+inline typename associationiterator<t_association_type>::reference
+associationiterator<t_association_type>::operator*() const
+{
+    return *iterator_;
+}
+
+template<typename t_association_type>
+inline typename associationiterator<t_association_type>::pointer
+associationiterator<t_association_type>::operator->() const
+{
+    return &(*iterator_);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator==(iterator const & _iterator) const
+{
+    return (iterator_ == _iterator.iterator_);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator==(const_iterator const & _iterator) const
+{
+    return (iterator_ == _iterator.iterator_);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator!=(iterator const & _iterator) const
+{
+    return !(operator==(_iterator));
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator!=(const_iterator const & _iterator) const
+{
+    return !(operator==(_iterator));
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator<(iterator const & _iterator) const
+{
+    return (iterator_ < _iterator.iterator_);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator<(const_iterator const & _iterator) const
+{
+    return (iterator_ < _iterator.iterator_);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator<=(iterator const & _iterator) const
+{
+    return !(_iterator < *this);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator<=(const_iterator const & _iterator) const
+{
+    return !(_iterator < *this);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator>(iterator const & _iterator) const
+{
+    return (_iterator < *this);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator>(const_iterator const & _iterator) const
+{
+    return (_iterator < *this);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator>=(iterator const & _iterator) const
+{
+    return !(*this < _iterator);
+}
+
+template<typename t_association_type>
+inline bool associationiterator<t_association_type>::operator>=(const_iterator const & _iterator) const
+{
+    return !(*this < _iterator);
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type> &
+associationiterator<t_association_type>::operator++()
+{
+    ++iterator_;
+    return *this;
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type>
+associationiterator<t_association_type>::operator++(int)
+{
+    associationiterator _temp(*this);
+    ++iterator_;
+    return _temp;
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type> &
+associationiterator<t_association_type>::operator--()
+{
+    --iterator_;
+    return *this;
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type>
+associationiterator<t_association_type>::operator--(int)
+{
+    associationiterator _temp(*this);
+    --iterator_;
+    return _temp;
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type> &
+associationiterator<t_association_type>::operator+=(difference_type _n)
+{
+    iterator_ += _n;
+    return *this;
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type>
+associationiterator<t_association_type>::operator+(difference_type _n) const
+{
+    associationiterator _temp(*this);
+    _temp += _n;
+    return _temp;
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type> &
+associationiterator<t_association_type>::operator-=(difference_type _n)
+{
+    iterator_ -= _n;
+    return *this;
+}
+
+template<typename t_association_type>
+inline associationiterator<t_association_type>
+associationiterator<t_association_type>::operator-(difference_type _n) const
+{
+    associationiterator _temp(*this);
+    _temp -= _n;
+    return _temp;
+}
+
+template<typename t_association_type>
+inline typename
+associationiterator<t_association_type>::difference_type
+associationiterator<t_association_type>::operator-(associationiterator const & _iterator) const
+{
+    return (iterator_ - _iterator.iterator_);
+}
+
+template<typename t_association_type>
+inline typename associationiterator<t_association_type>::reference
+associationiterator<t_association_type>::operator[](difference_type _n) const
+{
+    return (iterator_[_n]);
+}
+
+#endif // DPGAnalysis_Tools_associationiterator_icc

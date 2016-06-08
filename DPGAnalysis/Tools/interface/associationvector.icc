@@ -1,0 +1,471 @@
+#ifndef DPGAnalysis_Tools_associationvector_icc
+#define DPGAnalysis_Tools_associationvector_icc
+
+#include "DPGAnalysis/Tools/interface/associationvector.h"
+
+#include <algorithm>
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::key_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::key_begin() const
+{
+    if (key_container_ptr_ != key_container_ptr_type())
+        return key_container_ptr_->begin();
+    else
+        return key_iterator();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::value_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::value_begin() const
+{
+    if (value_container_ptr_ != value_container_ptr_type())
+        return value_container_ptr_->begin();
+    else
+        return value_iterator();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::key_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::key_end() const
+{
+    if (key_container_ptr_ != key_container_ptr_type())
+        return key_container_ptr_->end();
+    else
+        return key_iterator();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::value_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::value_end() const
+{
+    if (value_container_ptr_ != value_container_ptr_type())
+        return value_container_ptr_->end();
+    else
+        return value_iterator();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::associationvector()
+    : key_container_ptr_()
+    , value_container_ptr_()
+{}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline associationvector<t_association_type
+                         , t_key_container_ptr_type, t_value_container_ptr_type>::associationvector(key_container_ptr_type _key_container_ptr
+                                                                                                    , value_container_ptr_type _value_container_ptr)
+                             : key_container_ptr_(_key_container_ptr)
+                             , value_container_ptr_(_value_container_ptr)
+{}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline associationvector<t_association_type
+                         , t_key_container_ptr_type, t_value_container_ptr_type>::associationvector(key_container_ptr_type _key_container_ptr
+                                                                                                    , value_container_ptr_type _value_container_ptr
+                                                                                                    , container_type const & _associations)
+                             : data_(_associations)
+                             , key_container_ptr_(_key_container_ptr)
+                             , value_container_ptr_(_value_container_ptr)
+{}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline associationvector<t_association_type
+                         , t_key_container_ptr_type, t_value_container_ptr_type>::associationvector(associationvector const & _associationvector)
+                             : data_(_associationvector.data_)
+                             , key_container_ptr_(_associationvector.key_container_ptr_)
+                             , value_container_ptr_(_associationvector.value_container_ptr_)
+{}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::allocator_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::get_allocator() const
+{
+    return data_.get_allocator();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type
+                                  , t_key_container_ptr_type, t_value_container_ptr_type>::associationvector &
+associationvector<t_association_type
+                  , t_key_container_ptr_type, t_value_container_ptr_type>::operator=(associationvector const & _associationvector)
+{
+    if (this != &_associationvector) {
+        data_ = _associationvector.data_;
+        key_container_ptr_ = _associationvector.key_container_ptr_;
+        value_container_ptr_ = _associationvector.value_container_ptr_;
+    }
+    return *this;
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline t_key_container_ptr_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::key_container_ptr() const
+{
+    return key_container_ptr_;
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline t_value_container_ptr_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::value_container_ptr() const
+{
+    return value_container_ptr_;
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::at(size_type _n) const
+{
+    return data_.at(_n);
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::operator[](size_type _n) const
+{
+    return data_[_n];
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::front() const
+{
+    return data_.front();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::back() const
+{
+    return data_.back();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::container_type const &
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::data() const
+{
+    return data_;
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::key_container_ptr(key_container_ptr_type _key_container_ptr)
+{
+    key_container_ptr_ = _key_container_ptr;
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::value_container_ptr(value_container_ptr_type _value_container_ptr)
+{
+    value_container_ptr_ = _value_container_ptr;
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::at(size_type _n)
+{
+    return data_.at(_n);
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::operator[](size_type _n)
+{
+    return data_[_n];
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::front()
+{
+    return data_.front();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::reference
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::back()
+{
+    return data_.back();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::container_type &
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::data()
+{
+    return data_;
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::begin()
+{
+    return iterator(data_.begin(), key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::end()
+{
+    return iterator(data_.end(), key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::reverse_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::rbegin()
+{
+    return reverse_iterator(const_iterator(data_.end(), key_begin(), value_begin()));
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::reverse_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::rend()
+{
+    return reverse_iterator(const_iterator(data_.begin(), key_begin(), value_begin()));
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::range_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::equal_range()
+{
+    return std::pair<iterator, iterator>(begin(), end());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::begin() const
+{
+    return const_iterator(data_.begin(), key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::cbegin() const
+{
+    return const_iterator(data_.begin(), key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::end() const
+{
+    return const_iterator(data_.end(), key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::cend() const
+{
+    return const_iterator(data_.end(), key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reverse_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::rbegin() const
+{
+    return const_reverse_iterator(const_iterator(data_.end(), key_begin(), value_begin()));
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reverse_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::crbegin() const
+{
+    return const_reverse_iterator(const_iterator(data_.end(), key_begin(), value_begin()));
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reverse_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::rend() const
+{
+    return const_reverse_iterator(const_iterator(data_.begin(), key_begin(), value_begin()));
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_reverse_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::crend() const
+{
+    return const_reverse_iterator(const_iterator(data_.begin(), key_begin(), value_begin()));
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_range_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::equal_range() const
+{
+    return std::pair<const_iterator, const_iterator>(begin(), end());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline bool associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::empty() const
+{
+    return data_.empty();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::size_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::size() const
+{
+    return data_.size();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::size_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::max_size() const
+{
+    return data_.max_size();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::reserve(size_type _size)
+{
+    data_.reserve(_size);
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::size_type
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::capacity() const
+{
+    return data_.capacity();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::clear()
+{
+    data_.clear();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::insert(iterator _position, value_type const & _value)
+{
+    return iterator(data_.insert(_position.base(), _value)
+                    , key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+template <typename i_iterator>
+inline void
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::insert(iterator _position, i_iterator _first, i_iterator _last)
+{
+    data_.insert(_position.base(), _first, _last);
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::erase(iterator _position)
+{
+    return iterator(data_.erase(_position.base())
+                    , key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::erase(iterator _first, iterator _last)
+{
+    return iterator(data_.erase(_first.base(), _last.base())
+                    , key_begin(), value_begin());
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::push_back(value_type const & _value)
+{
+    data_.push_back(_value);
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::pop_back()
+{
+    data_.pop_back();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::swap(associationvector & _associationvector)
+{
+    data_.swap(_associationvector.data_);
+    std::swap(key_container_ptr_, _associationvector.key_container_ptr_);
+    std::swap(value_container_ptr_, _associationvector.value_container_ptr_);
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline void
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::swap(container_type & _container)
+{
+    data_.swap(_container);
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::find_key(key_iterator _key_iterator)
+{
+    if (key_container_ptr_ == key_container_ptr_type())
+        return end();
+
+    key_difference_type _diff = std::distance(key_container_ptr_->begin(), _key_iterator);
+    for (iterator _it = begin() ; _it != end() ; ++_it)
+        if (_it->key_difference() == _diff)
+            return _it;
+    return end();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::find_value(value_iterator _value_iterator)
+{
+    if (value_container_ptr_ == value_container_ptr_type())
+        return end();
+
+    value_difference_type _diff = std::distance(value_container_ptr_->begin(), _value_iterator);
+    for (iterator _it = begin() ; _it != end() ; ++_it)
+        if (_it->value_difference() == _diff)
+            return _it;
+    return end();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::find_key(key_iterator _key_iterator) const
+{
+    if (key_container_ptr_ == key_container_ptr_type())
+        return end();
+
+    key_difference_type _diff = std::distance(key_container_ptr_->begin(), _key_iterator);
+    for (const_iterator _it = begin() ; _it != end() ; ++_it)
+        if (_it->key_difference() == _diff)
+            return _it;
+    return end();
+}
+
+template<typename t_association_type, typename t_key_container_ptr_type, typename t_value_container_ptr_type>
+inline typename associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::const_iterator
+associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type>::find_value(value_iterator _value_iterator) const
+{
+    if (value_container_ptr_ == value_container_ptr_type())
+        return end();
+
+    value_difference_type _diff = std::distance(value_container_ptr_->begin(), _value_iterator);
+    for (const_iterator _it = begin() ; _it != end() ; ++_it)
+        if (_it->value_difference() == _diff)
+            return _it;
+    return end();
+}
+
+template<typename t_association_type
+         , typename t_key_container_ptr_type
+         , typename t_value_container_ptr_type>
+inline bool operator<(associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type> const & _lhs
+                      , associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type> const & _rhs)
+{
+    return (_lhs.data() < _rhs.data());
+}
+
+template<typename t_association_type
+         , typename t_key_container_ptr_type
+         , typename t_value_container_ptr_type>
+inline bool operator==(associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type> const & _lhs
+                       , associationvector<t_association_type, t_key_container_ptr_type, t_value_container_ptr_type> const & _rhs)
+{
+    return (_lhs.data() == _rhs.data());
+}
+
+#endif // DPGAnalysis_Tools_associationvector_icc
