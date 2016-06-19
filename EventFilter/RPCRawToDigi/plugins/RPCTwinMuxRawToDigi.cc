@@ -20,7 +20,6 @@
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 #include "EventFilter/RPCRawToDigi/interface/RPCTwinMuxRecord.h"
 
-
 RPCTwinMuxRawToDigi::RPCTwinMuxRawToDigi(edm::ParameterSet const & _config)
     : calculate_crc_(_config.getParameter<bool>("calculateCRC"))
     , bx_min_(_config.getParameter<int>("bxMin"))
@@ -204,7 +203,7 @@ bool RPCTwinMuxRawToDigi::processBlock(int _fed
 
     unsigned int _n_amc(_block_header.getNAMC());
     if (_word + _n_amc + 1 >= _word_end) {
-        edm::LogWarning("RPCTwinMuxRawToDigi") << "Block can not be complete";
+        edm::LogWarning("RPCTwinMuxRawToDigi") << "Block can not be complete for FED " << _fed;
         _word = _word_end;
         return false;
     }
@@ -250,6 +249,7 @@ bool RPCTwinMuxRawToDigi::processTwinMux(int _fed, unsigned int _amc_number, uns
     if (!_size)
         return true;
     if (_word + _size >= _word_end || _size < 3) { // can not be complete
+        edm::LogWarning("RPCTwinMuxRawToDigi") << "TwinMux Data can not be complete for FED " << _fed << " AMC #" << _amc_number;
         _word += _size;
         return false;
     }
@@ -272,7 +272,7 @@ bool RPCTwinMuxRawToDigi::processTwinMux(int _fed, unsigned int _amc_number, uns
     int _bx_min(bx_min_), _bx_max(bx_max_);
     if (_header.hasRPCBXWindow()) {
         _bx_min = std::max(_bx_min, _header.getRPCBXMin());
-        _bx_max = std::min(_bx_min, _header.getRPCBXMax());
+        _bx_max = std::min(_bx_max, _header.getRPCBXMax());
         LogDebug("RPCTwinMuxRawToDigi") << "BX range set to " << _bx_min << ", " << _bx_max;
     }
 
@@ -285,22 +285,25 @@ bool RPCTwinMuxRawToDigi::processTwinMux(int _fed, unsigned int _amc_number, uns
         LogDebug("RPCTwinMuxRawToDigi") << "TwinMux data type " << std::hex << _type << std::dec;
         if (_type == rpctwinmux::TwinMuxRecord::rpc_first_type_) {
             if (_has_first_rpc)
-                processRPCRecord(_fed, _amc_number, _rpc_record, _digis, _bx_min, _bx_max);
+                processRPCRecord(_fed, _amc_number, _rpc_record, _digis, _bx_min, _bx_max, 0, 1);
             _rpc_record.reset();
             _rpc_record.set(0, *_word);
             _has_first_rpc = true;
         } else if (_type == rpctwinmux::TwinMuxRecord::rpc_second_type_) {
             if (!_has_first_rpc) {
                 edm::LogWarning("RPCTwinMuxRawToDigi") << "Received second RPC word without first";
+                _rpc_record.set(1, *_word);
+                processRPCRecord(_fed, _amc_number, _rpc_record, _digis, _bx_min, _bx_max, 2, 4);
+                _has_first_rpc = false;
             } else {
                 _rpc_record.set(1, *_word);
-                processRPCRecord(_fed, _amc_number, _rpc_record, _digis, _bx_min, _bx_max);
+                processRPCRecord(_fed, _amc_number, _rpc_record, _digis, _bx_min, _bx_max, 0, 4);
                 _has_first_rpc = false;
             }
         }
     }
     if (_has_first_rpc)
-        processRPCRecord(_fed, _amc_number, _rpc_record, _digis, _bx_min, _bx_max);
+        processRPCRecord(_fed, _amc_number, _rpc_record, _digis, _bx_min, _bx_max, 0, 1);
 
     rpctwinmux::TwinMuxTrailer _trailer(*_word);
     LogDebug("RPCTwinMuxRawToDigi") << "TwinMux Trailer " << std::hex << *_word << std::dec;
@@ -314,16 +317,20 @@ bool RPCTwinMuxRawToDigi::processTwinMux(int _fed, unsigned int _amc_number, uns
 void RPCTwinMuxRawToDigi::processRPCRecord(int _fed, unsigned int _amc_number
                                            , rpctwinmux::RPCRecord const & _record
                                            , std::set<std::pair<RPCDetId, RPCDigi> > & _digis
-                                           , int _bx_min, int _bx_max) const
+                                           , int _bx_min, int _bx_max
+                                           , unsigned int _link_min, unsigned int _link_max) const
 {
     LogDebug("RPCTwinMuxRawToDigi") << "RPCRecord " << std::hex << _record.getRecord()[0] << ", " << _record.getRecord()[1] << std::dec << std::endl;
     int _bx_offset(_record.getBXOffset());
     RPCTwinMuxLink _tm_link(_fed, _amc_number);
-    for (unsigned int _link = 0 ; _link < 4 ; ++_link) {
+    for (unsigned int _link = _link_min ; _link <= _link_max ; ++_link) {
         _tm_link.setTMInput(_link);
         rpctwinmux::RPCLinkRecord _link_record(_record.getRPCLinkRecord(_link));
-        if (!_link_record.isAcknowledge() || _link_record.isError()) {
-            edm::LogWarning("RPCTwinMuxRawToDigi") << "Link not ready for " << _tm_link;
+        if (_link_record.isError()) {
+            LogDebug("RPCTwinMuxRawToDigi") << "Link in error for " << _tm_link;
+            continue;
+        } else if (!_link_record.isAcknowledge()) {
+            LogDebug("RPCTwinMuxRawToDigi") << "Link without acknowledge for " << _tm_link;
             continue;
         }
         if (!_link_record.getData())
@@ -339,15 +346,17 @@ void RPCTwinMuxRawToDigi::processRPCRecord(int _fed, unsigned int _amc_number
 
         if (_link_record.getLinkBoard() > RPCLBLink::max_linkboard_) {
             edm::LogWarning("RPCTwinMuxRawToDigi") << "Skipping invalid LinkBoard " << _link_record.getLinkBoard()
-                                                   << " for record " << std::hex << _link_record.getRecord() << std::dec
+                                                   << " for record " << _link << " (" << std::hex << _link_record.getRecord()
+                                                   << " in " << _record.getRecord()[0] << ':' << _record.getRecord()[1] << std::dec
                                                    << " from " << _tm_link;
             continue;
         }
 
         if (_link_record.getConnector() > RPCLBLink::max_connector_) {
             edm::LogWarning("RPCTwinMuxRawToDigi") << "Skipping invalid Connector " << _link_record.getConnector()
-                                                   << " for record " << std::hex << _link_record.getRecord() << std::dec
-                                                   << " from " << _tm_link;
+                                                   << " for record " << _link << " (" << std::hex << _link_record.getRecord()
+                                                   << " in " << _record.getRecord()[0] << ':' << _record.getRecord()[1] << std::dec
+                                                   << ") from " << _tm_link;
             continue;
         }
 
@@ -356,7 +365,10 @@ void RPCTwinMuxRawToDigi::processRPCRecord(int _fed, unsigned int _amc_number
 
         RPCLBLinkMap::map_type::const_iterator _lb_link_it = es_rpc_lb_link_map_->getMap().find(_lb_link);
         if (_lb_link_it == es_rpc_lb_link_map_->getMap().end()) {
-            edm::LogWarning("RPCTwinMuxRawToDigi") << "Could not find " << _lb_link;
+            edm::LogWarning("RPCTwinMuxRawToDigi") << "Could not find " << _lb_link
+                                                   << " for record " << _link << " (" << std::hex << _link_record.getRecord()
+                                                   << " in " << _record.getRecord()[0] << ':' << _record.getRecord()[1] << std::dec
+                                                   << ") from " << _tm_link;
             continue;
         }
 
@@ -385,7 +397,8 @@ void RPCTwinMuxRawToDigi::processRPCRecord(int _fed, unsigned int _amc_number
     }
 }
 
-void RPCTwinMuxRawToDigi::putRPCDigis(edm::Event & _event, std::set<std::pair<RPCDetId, RPCDigi> > const & _digis)
+void RPCTwinMuxRawToDigi::putRPCDigis(edm::Event & _event
+                                      , std::set<std::pair<RPCDetId, RPCDigi> > const & _digis)
 {
     std::unique_ptr<RPCDigiCollection> _rpc_digi_collection(new RPCDigiCollection());
     RPCDetId _rpc_det_id;

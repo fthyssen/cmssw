@@ -58,8 +58,10 @@ protected:
     void processRPCRecord(int _fed, unsigned int _amc_number
                           , rpctwinmux::RPCRecord const & _record
                           , std::set<std::pair<RPCDetId, RPCDigi> > & _digis
-                          , int _bx_min, int _bx_max) const;
-    static void putRPCDigis(edm::Event & _event, std::set<std::pair<RPCDetId, RPCDigi> > const & _digis);
+                          , int _bx_min, int _bx_max
+                          , unsigned int _link_min, unsigned int _link_max) const;
+    static void putRPCDigis(edm::Event & _event
+                            , std::set<std::pair<RPCDetId, RPCDigi> > const & _digis);
 
 protected:
     edm::EDGetTokenT<FEDRawDataCollection> raw_token_;
