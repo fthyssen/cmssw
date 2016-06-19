@@ -385,12 +385,12 @@ inline bool TwinMuxHeader::hasRPCBXWindow() const
 
 inline int TwinMuxHeader::getRPCBXMin() const
 {
-    return int((record_[1] & rpc_bx_window_mask_) >> rpc_bx_window_offset_) / 5 - 4;
+    return -1 * int((record_[1] & rpc_bx_window_mask_) >> rpc_bx_window_offset_) / 5;
 }
 
 inline int TwinMuxHeader::getRPCBXMax() const
 {
-    return int((record_[1] & rpc_bx_window_mask_) >> rpc_bx_window_offset_) % 5 - 4;
+    return int((record_[1] & rpc_bx_window_mask_) >> rpc_bx_window_offset_) % 5;
 }
 
 inline bool TwinMuxHeader::hasHOBXWindow() const
