@@ -30,9 +30,9 @@
 
 float RPCRawToDigiAnalyser::DigiDistance(std::pair<RPCDetId, RPCDigi> const & _lhs, std::pair<RPCDetId, RPCDigi> const & _rhs)
 {
-    return (std::fabs(_lhs.second.strip() - _rhs.second.strip())
+    return (std::fabs(_lhs.second.strip() - _rhs.second.strip()) * 20
             + std::fabs(_lhs.second.bx() - _rhs.second.bx())
-            + std::fabs(_lhs.first - _rhs.first) * 1.e-9);
+            + std::fabs(_lhs.first - _rhs.first) * 20);
 }
 
 std::unique_ptr<RPCRawToDigiAnalyserGlobalCache> RPCRawToDigiAnalyser::initializeGlobalCache(edm::ParameterSet const & _config)
@@ -48,6 +48,8 @@ std::unique_ptr<RPCRawToDigiAnalyserGlobalCache> RPCRawToDigiAnalyser::initializ
 }
 
 RPCRawToDigiAnalyser::RPCRawToDigiAnalyser(edm::ParameterSet const & _config, RPCRawToDigiAnalyserGlobalCache const *)
+    : bx_min_(_config.getParameter<int>("bxMin"))
+    , bx_max_(_config.getParameter<int>("bxMax"))
 {
     lhs_digis_token_ = consumes<RPCDigiCollection>(_config.getParameter<edm::InputTag>("LHSDigiCollection"));
     rhs_digis_token_ = consumes<RPCDigiCollection>(_config.getParameter<edm::InputTag>("RHSDigiCollection"));
@@ -63,6 +65,8 @@ void RPCRawToDigiAnalyser::fillDescriptions(edm::ConfigurationDescriptions & _de
     _desc.add<edm::InputTag>("LHSDigiCollection", edm::InputTag("rpcunpacker", ""));
     _desc.add<edm::InputTag>("RHSDigiCollection", edm::InputTag("RPCDCCRawToDigi", ""));
     _desc.add<std::vector<std::string> >("RollSelection", std::vector<std::string>());
+    _desc.add<int>("bxMin", -2);
+    _desc.add<int>("bxMax", 2);
 
     _descs.add("RPCRawToDigiAnalyser", _desc);
 }
@@ -88,7 +92,7 @@ std::shared_ptr<RPCRawToDigiAnalyserRunCache> RPCRawToDigiAnalyser::globalBeginR
             continue;
 
         RPCMaskDetId _region_station_ring(_maskid);
-        _region_station_ring.setLayer().setSector().setSubSector().setSubSubSector().setRoll().setGap();
+        _region_station_ring.setSector().setSubSector().setSubSubSector().setRoll().setGap();
         _region_station_ring_rolls[_region_station_ring].push_back(_maskid);
     }
 
@@ -207,7 +211,8 @@ void RPCRawToDigiAnalyser::produce(edm::Event & _event, edm::EventSetup const & 
         RPCDigiCollection::DigiRangeIterator::DigiRangeIterator _digi_end = (*_detid_digis).second.second;
         for (RPCDigiCollection::DigiRangeIterator::DigiRangeIterator _digi = (*_detid_digis).second.first
                  ; _digi != _digi_end ; ++_digi)
-            _lhs_digis.insert(std::pair<RPCDetId, RPCDigi>(_detid, *_digi));
+            if (_digi->bx() >= bx_min_ && _digi->bx() <= bx_max_)
+                _lhs_digis.insert(std::pair<RPCDetId, RPCDigi>(_detid, *_digi));
     }
 
     for (RPCDigiCollection::DigiRangeIterator _detid_digis = _rhs_digis_handle->begin()
@@ -225,7 +230,8 @@ void RPCRawToDigiAnalyser::produce(edm::Event & _event, edm::EventSetup const & 
         RPCDigiCollection::DigiRangeIterator::DigiRangeIterator _digi_end = (*_detid_digis).second.second;
         for (RPCDigiCollection::DigiRangeIterator::DigiRangeIterator _digi = (*_detid_digis).second.first
                  ; _digi != _digi_end ; ++_digi)
-            _rhs_digis.insert(std::pair<RPCDetId, RPCDigi>(_detid, *_digi));
+            if (_digi->bx() >= bx_min_ && _digi->bx() <= bx_max_)
+                _rhs_digis.insert(std::pair<RPCDetId, RPCDigi>(_detid, *_digi));
     }
 
     typedef association<std::set<std::pair<RPCDetId, RPCDigi> >, std::set<std::pair<RPCDetId, RPCDigi> > >
@@ -233,14 +239,14 @@ void RPCRawToDigiAnalyser::produce(edm::Event & _event, edm::EventSetup const & 
     associationvector<association_type> _associations
         = associator::associate<associationvector<association_type> >(&_lhs_digis, &_rhs_digis, &RPCRawToDigiAnalyser::DigiDistance
                                                                       , associator::munkres_
-                                                                      , 500.);
+                                                                      , 10.);
 
     bool _report(false);
     for (associationvector<association_type>::const_iterator _association = _associations.begin()
              ; _association != _associations.end() ; ++_association) {
         RPCMaskDetId _id(_association.key_valid() ? _association.key()->first : _association.value()->first);
         RPCMaskDetId _region_station_ring(_id);
-        _region_station_ring.setLayer().setSector().setSubSector().setSubSubSector().setRoll().setGap();
+        _region_station_ring.setSector().setSubSector().setSubSubSector().setRoll().setGap();
 
         if (_association.distance() > 0)
             _report = true;
@@ -252,8 +258,8 @@ void RPCRawToDigiAnalyser::produce(edm::Event & _event, edm::EventSetup const & 
             _report = true;
         } else if (!_association.key_valid()) {
             stream_data_.region_station_ring_roll_roll_->at(_region_station_ring.getId())->Fill(0., .5 + _id.getId());
-            stream_data_.region_station_ring_strip_strip_->at(_region_station_ring.getId())->Fill(0., _association.key()->second.strip());
-            stream_data_.region_station_ring_bx_bx_->at(_region_station_ring.getId())->Fill(-5., _association.key()->second.bx());
+            stream_data_.region_station_ring_strip_strip_->at(_region_station_ring.getId())->Fill(0., _association.value()->second.strip());
+            stream_data_.region_station_ring_bx_bx_->at(_region_station_ring.getId())->Fill(-5., _association.value()->second.bx());
             _report = true;
         } else {
             RPCMaskDetId _rhs(_association.value()->first);
@@ -263,7 +269,7 @@ void RPCRawToDigiAnalyser::produce(edm::Event & _event, edm::EventSetup const & 
         }
     }
     if (_report)
-        edm::LogWarning("RPCRawToDigiAnalyser") << "Report difference";
+        LogDebug("RPCRawToDigiAnalyser") << "Report difference";
 }
 
 void RPCRawToDigiAnalyser::endRunSummary(edm::Run const & _run, edm::EventSetup const & _setup

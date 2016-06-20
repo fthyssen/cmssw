@@ -27,19 +27,6 @@ process = cms.Process("testRPCRawToDigiAnalyser")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-# process.MessageLogger = cms.Service(
-#     "MessageLogger"
-#     , destinations = cms.untracked.vstring(
-#         'detailedInfo',
-#         'critical'
-#     )
-#     , detailedInfo = cms.untracked.PSet(
-#         threshold = cms.untracked.string('DEBUG')
-#     )
-#     , debugModules = cms.untracked.vstring(
-#         '*'
-#     )
-# )
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = "80X_dataRun2_Express_v6"
@@ -75,7 +62,7 @@ process.source = cms.Source("PoolSource"
 )
 
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
-process.maxLuminosityBlocks = cms.untracked.PSet( input = cms.untracked.int32(50) )
+process.maxLuminosityBlocks = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.p = cms.Path((process.rpcUnpackingModule
                       # + process.RPCDCCRawToDigi

@@ -19,6 +19,7 @@
 #include "DPGAnalysis/RPC/interface/RPCMaskDetId.h"
 
 #include "DPGAnalysis/Tools/interface/DivergingPalette.h"
+#include "DPGAnalysis/Tools/interface/SequentialPalette.h"
 
 RPCRawToDigiPlotter::RPCRawToDigiPlotter(edm::ParameterSet const & _config)
     : first_run_(true)
@@ -158,6 +159,10 @@ void RPCRawToDigiPlotter::endJob()
         _temp_th2d->GetZaxis()->SetTitle("Hits");
         _title.SetText(0.10, 0.91, _region_station_ring->second->GetTitle());
         _title.Draw();
+        RPCMaskDetId _mask_id(_region_station_ring->first);
+        std::ostringstream _mask_oss;
+        _mask_oss << (_mask_id.getRPCDetId().rawId());
+        _title_note.SetText(0.85, 0.91, _mask_oss.str().c_str());
         _title_note.Draw();
         _canvas.Print(output_pdf_.c_str());
     }

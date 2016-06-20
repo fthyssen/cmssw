@@ -76,6 +76,9 @@ public:
 protected:
     // tokens
     edm::EDGetTokenT<RPCDigiCollection> lhs_digis_token_, rhs_digis_token_;
+
+    int bx_min_, bx_max_;
+
     // stream-specific histograms
     RPCRawToDigiAnalyserData stream_data_;
 };
